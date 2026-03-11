@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barangay Information Management System</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #2a3444;
+    --accent: #2ea87e;
+    --accent2: #1a7a5a;
+    --accent-glow: rgba(46,168,126,0.15);
+    --red: #e05c5c;
+    --yellow: #d4a84b;
+    --blue: #4a9eff;
+    --purple: #8b68db;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #58687a;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+  
+  /* SPLASH / LOGIN */
+  #splash { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:1000; }
+  .splash-inner { text-align:center; max-width:480px; padding:40px; }
+  .brgy-seal { width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; margin:0 auto 24px; font-size:36px; box-shadow:0 0 40px var(--accent-glow); }
+  .splash-title { font-family:'DM Serif Display',serif; font-size:2rem; line-height:1.2; margin-bottom:6px; }
+  .splash-subtitle { color:var(--accent); font-size:.85rem; letter-spacing:2px; text-transform:uppercase; margin-bottom:32px; }
+  
+  /* FORMS */
+  .form-group { margin-bottom:16px; text-align:left; }
+  .form-group label { display:block; font-size:.8rem; color:var(--text2); margin-bottom:6px; font-weight:500; letter-spacing:.5px; text-transform:uppercase; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:12px 16px; background:var(--surface2); border:1px solid var(--border);
+    border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.9rem;
+    transition:border-color .2s, box-shadow .2s; outline:none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow);
+  }
+  .form-group select option { background:var(--surface2); }
+  .form-group textarea { resize:vertical; min-height:80px; }
+  
+  .btn { padding:11px 22px; border:none; border-radius:8px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:600; font-size:.9rem; transition:all .2s; display:inline-flex; align-items:center; gap:8px; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:var(--accent2); transform:translateY(-1px); box-shadow:0 4px 16px var(--accent-glow); }
+  .btn-danger { background:var(--red); color:#fff; }
+  .btn-danger:hover { opacity:.85; }
+  .btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border); }
+  .btn-ghost:hover { background:var(--surface2); color:var(--text); }
+  .btn-sm { padding:7px 14px; font-size:.8rem; }
+  .btn-block { width:100%; justify-content:center; }
+  
+  /* LAYOUT */
+  #app { display:none; min-height:100vh; }
+  .layout { display:flex; min-height:100vh; }
+  
+  /* SIDEBAR */
+  .sidebar { width:240px; background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh; z-index:100; }
+  .sidebar-logo { padding:20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+  .logo-icon { width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .logo-text { font-family:'DM Serif Display',serif; font-size:1rem; line-height:1.2; }
+  .logo-sub { font-size:.7rem; color:var(--accent); text-transform:uppercase; letter-spacing:1px; }
+  .sidebar-nav { flex:1; padding:16px 12px; overflow-y:auto; }
+  .nav-section-label { font-size:.7rem; color:var(--text3); text-transform:uppercase; letter-spacing:1.5px; padding:8px 8px 4px; margin-top:8px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; color:var(--text2); font-size:.88rem; font-weight:500; transition:all .15s; margin-bottom:2px; }
+  .nav-item:hover { background:var(--surface2); color:var(--text); }
+  .nav-item.active { background:var(--accent-glow); color:var(--accent); border:1px solid rgba(46,168,126,0.3); }
+  .nav-item .nav-icon { font-size:1rem; width:20px; text-align:center; }
+  .sidebar-user { padding:16px; border-top:1px solid var(--border); }
+  .user-chip { display:flex; align-items:center; gap:10px; padding:10px; background:var(--surface2); border-radius:8px; }
+  .user-avatar { width:32px; height:32px; border-radius:8px; background:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:.8rem; flex-shrink:0; }
+  .user-name { font-size:.82rem; font-weight:600; }
+  .user-role { font-size:.72rem; color:var(--accent); }
+  .btn-logout { width:100%; margin-top:8px; padding:8px; background:transparent; border:1px solid var(--border); border-radius:6px; color:var(--text3); cursor:pointer; font-size:.8rem; transition:all .2s; }
+  .btn-logout:hover { border-color:var(--red); color:var(--red); }
+  
+  /* MAIN */
+  .main { margin-left:240px; flex:1; padding:28px; min-height:100vh; }
+  .page-header { margin-bottom:28px; }
+  .page-title { font-family:'DM Serif Display',serif; font-size:1.8rem; }
+  .page-sub { color:var(--text2); font-size:.88rem; margin-top:4px; }
+  
+  /* CARDS */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+  .card-sm { padding:16px; }
+  
+  /* STAT CARDS */
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; margin-bottom:24px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; position:relative; overflow:hidden; }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .stat-card.green::before { background:var(--accent); }
+  .stat-card.blue::before { background:var(--blue); }
+  .stat-card.yellow::before { background:var(--yellow); }
+  .stat-card.red::before { background:var(--red); }
+  .stat-card.purple::before { background:var(--purple); }
+  .stat-icon { font-size:1.6rem; margin-bottom:12px; }
+  .stat-value { font-family:'DM Serif Display',serif; font-size:2.2rem; line-height:1; margin-bottom:4px; }
+  .stat-label { font-size:.8rem; color:var(--text2); text-transform:uppercase; letter-spacing:.5px; }
+  
+  /* TABLE */
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; padding:10px 14px; font-size:.75rem; color:var(--text3); text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--border); background:var(--surface2); }
+  td { padding:12px 14px; font-size:.87rem; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:hover td { background:rgba(255,255,255,.02); }
+  .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.73rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+  .badge-green { background:rgba(46,168,126,.15); color:var(--accent); }
+  .badge-red { background:rgba(224,92,92,.15); color:var(--red); }
+  .badge-yellow { background:rgba(212,168,75,.15); color:var(--yellow); }
+  .badge-blue { background:rgba(74,158,255,.15); color:var(--blue); }
+  .badge-purple { background:rgba(139,104,219,.15); color:var(--purple); }
+  .badge-gray { background:rgba(139,148,158,.1); color:var(--text2); }
+  
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(4px); }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); width:100%; max-width:600px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow); }
+  .modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:var(--surface); z-index:1; }
+  .modal-title { font-family:'DM Serif Display',serif; font-size:1.3rem; }
+  .modal-close { background:none; border:none; color:var(--text2); cursor:pointer; font-size:1.3rem; padding:4px 8px; border-radius:4px; }
+  .modal-close:hover { color:var(--text); background:var(--surface2); }
+  .modal-body { padding:24px; }
+  .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+  
+  /* TABS */
+  .tabs { display:flex; gap:4px; background:var(--surface2); padding:4px; border-radius:10px; margin-bottom:20px; }
+  .tab { flex:1; padding:8px 12px; background:none; border:none; color:var(--text2); cursor:pointer; border-radius:7px; font-size:.85rem; font-weight:500; transition:all .15s; text-align:center; }
+  .tab.active { background:var(--surface); color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.3); }
+  
+  /* SEARCH BAR */
+  .search-bar { display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center; }
+  .search-input-wrap { position:relative; flex:1; min-width:200px; }
+  .search-input-wrap input { padding-left:38px; }
+  .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text3); font-size:.9rem; }
+  
+  /* ALERTS */
+  .alert { padding:12px 16px; border-radius:8px; font-size:.88rem; margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+  .alert-error { background:rgba(224,92,92,.1); border:1px solid rgba(224,92,92,.3); color:#ff8080; }
+  .alert-success { background:rgba(46,168,126,.1); border:1px solid rgba(46,168,126,.3); color:var(--accent); }
+  .alert-info { background:rgba(74,158,255,.1); border:1px solid rgba(74,158,255,.3); color:var(--blue); }
+  
+  /* GRID HELPERS */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  
+  /* PUBLIC PAGE */
+  #public-page { display:none; min-height:100vh; background:var(--bg); }
+  .public-header { background:var(--surface); border-bottom:1px solid var(--border); padding:16px 32px; display:flex; justify-content:space-between; align-items:center; }
+  .public-hero { padding:60px 32px; text-align:center; }
+  .public-hero h1 { font-family:'DM Serif Display',serif; font-size:2.5rem; margin-bottom:12px; }
+  .public-hero p { color:var(--text2); max-width:500px; margin:0 auto 32px; }
+  .public-form-wrap { max-width:580px; margin:0 auto; }
+  .section-divider { height:1px; background:var(--border); margin:24px 0; }
+  
+  /* CHART BARS */
+  .mini-chart { display:flex; align-items:flex-end; gap:4px; height:60px; margin-top:12px; }
+  .bar { flex:1; background:var(--accent); border-radius:3px 3px 0 0; opacity:.7; min-height:4px; }
+  
+  /* TIMELINE */
+  .timeline { padding-left:20px; border-left:2px solid var(--border); }
+  .timeline-item { position:relative; padding:0 0 20px 20px; }
+  .timeline-item::before { content:''; position:absolute; left:-9px; top:4px; width:14px; height:14px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); }
+  .timeline-time { font-size:.75rem; color:var(--text3); margin-bottom:3px; }
+  .timeline-text { font-size:.88rem; }
+  
+  /* RESPONSIVE HELPERS */
+  @media(max-width:768px){
+    .sidebar { transform:translateX(-100%); }
+    .main { margin-left:0; }
+    .grid-2,.grid-3 { grid-template-columns:1fr; }
+  }
+  
+  /* LOADING */
+  .spinner { display:inline-block; width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .6s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  
+  /* Empty state */
+  .empty-state { text-align:center; padding:40px; color:var(--text3); }
+  .empty-state .emoji { font-size:2.5rem; margin-bottom:12px; }
+  
+  /* Print certificate */
+  .cert-preview { background:#fff; color:#1a1a1a; padding:40px; border-radius:8px; font-family:'DM Serif Display',serif; }
+  .cert-preview h2 { text-align:center; font-size:1.5rem; margin-bottom:4px; }
+  .cert-preview .cert-sub { text-align:center; font-size:.9rem; margin-bottom:20px; font-family:'DM Sans',sans-serif; }
+  .cert-preview .cert-body { font-family:'DM Sans',sans-serif; font-size:.95rem; line-height:1.8; margin-bottom:24px; }
+  .cert-preview .cert-sig { display:flex; justify-content:space-between; margin-top:40px; }
+  
+  /* Notification dot */
+  .notif-dot { width:8px; height:8px; border-radius:50%; background:var(--red); display:inline-block; margin-left:auto; }
+  
+  /* Tags input style */
+  .info-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:.88rem; }
+  .info-row:last-child { border-bottom:none; }
+  .info-label { color:var(--text2); }
+  .info-value { font-weight:500; text-align:right; }
+</style>
+</head>
+<body>
+
+<!-- PUBLIC PAGE (no login) -->
+<div id="public-page">
+  <div class="public-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="logo-icon">🏛️</div>
+      <div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.1rem">Barangay Portal</div>
+        <div style="font-size:.72rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px">Citizen Request System</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="showSplash()">🔐 Official Login</button>
+  </div>
+  
+  <div class="public-hero">
+    <div style="font-size:3rem;margin-bottom:16px">🏘️</div>
+    <h1>Welcome, Residents!</h1>
+    <p>Request barangay documents and submit suggestions online. Fill out the form below and our barangay assistant will process your request.</p>
+    
+    <div class="public-form-wrap">
+      <div class="card">
+        <div id="pub-success" class="alert alert-success" style="display:none">✅ Your request has been submitted successfully! The Barangay Assistant will process it soon.</div>
+        <div id="pub-error" class="alert alert-error" style="display:none"></div>
+        
+        <div style="font-weight:600;margin-bottom:16px;font-size:1.05rem">📋 Submit a Request</div>
+        
+        <div class="grid-2">
+          <div class="form-group">
+            <label>First Name *</label>
+            <input type="text" id="pub-fname" placeholder="Juan">
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
+            <input type="text" id="pub-lname" placeholder="dela Cruz">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Birthday *</label>
+            <input type="date" id="pub-bday">
+          </div>
+          <div class="form-group">
+            <label>Gender *</label>
+            <select id="pub-gender">
+              <option value="">Select...</option>
+              <option>Male</option><option>Female</option><option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Complete Address *</label>
+          <input type="text" id="pub-address" placeholder="House No., Street, Barangay">
+        </div>
+        <div class="form-group">
+          <label>Contact Number</label>
+          <input type="text" id="pub-contact" placeholder="09XX-XXX-XXXX">
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <div class="form-group">
+          <label>Request Type *</label>
+          <select id="pub-reqtype">
+            <option value="">Select request...</option>
+            <option value="Barangay Certificate">Barangay Certificate</option>
+            <option value="Barangay Clearance">Barangay Clearance</option>
+            <option value="Indigency Certificate">Indigency Certificate</option>
+            <option value="Business Clearance">Business Clearance</option>
+            <option value="Suggestion/Complaint">Suggestion / Complaint</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Purpose / Details *</label>
+          <textarea id="pub-purpose" placeholder="State your purpose or describe your request in detail..."></textarea>
+        </div>
+        
+        <button class="btn btn-primary btn-block" onclick="submitPublicRequest()">
+          📤 Submit Request
+        </button>
+      </div>
+      
+      <div style="margin-top:16px;text-align:center;color:var(--text3);font-size:.82rem">
+        Note: Processing takes 1–3 business days. Please visit the barangay hall to claim your documents.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN SPLASH -->
+<div id="splash">
+  <div class="splash-inner">
+    <div class="brgy-seal">🏛️</div>
+    <div class="splash-title">Barangay Information<br>Management System</div>
+    <div class="splash-subtitle">Official Portal</div>
+    
+    <div id="login-error" class="alert alert-error" style="display:none"></div>
+    
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="login-email" placeholder="official@brgy.gov.ph" onkeypress="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeypress="if(event.key==='Enter')doLogin()">
+    </div>
+    
+    <button class="btn btn-primary btn-block" onclick="doLogin()" id="login-btn">🔐 Sign In</button>
+    
+    <div style="margin-top:20px;padding:14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);text-align:left">
+      <div style="font-size:.78rem;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">Demo Accounts</div>
+      <div style="font-size:.82rem;color:var(--text2);line-height:1.9">
+        🏅 <strong style="color:var(--yellow)">Captain:</strong> captain@brgy.ph / captain123<br>
+        👨‍💼 <strong style="color:var(--blue)">Assistant:</strong> assistant@brgy.ph / assistant123<br>
+        🏥 <strong style="color:var(--accent)">Healthcare:</strong> health@brgy.ph / health123
+      </div>
+    </div>
+    
+    <div style="margin-top:16px">
+      <button class="btn btn-ghost btn-sm" onclick="showPublic()">🏘️ Resident Portal (No Login)</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">🏛️</div>
+        <div>
+          <div class="logo-text">BIMS</div>
+          <div class="logo-sub">Barangay System</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav" id="main-nav"></nav>
+      <div class="sidebar-user">
+        <div class="user-chip">
+          <div class="user-avatar" id="user-avatar">?</div>
+          <div>
+            <div class="user-name" id="user-name-display">Loading...</div>
+            <div class="user-role" id="user-role-display">—</div>
+          </div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">⬅️ Sign Out</button>
+      </div>
+    </div>
+    
+    <main class="main" id="main-content"></main>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Modal</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// FIREBASE CONFIG — Replace with your own Firebase project config
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDOqkVv8l2EF-47T6B4-K3OFdFdWspuEIs",
+  authDomain: "brgy-system-44d04.firebaseapp.com",
+  projectId: "brgy-system-44d04",
+  storageBucket: "brgy-system-44d04.firebasestorage.app",
+  messagingSenderId: "330630468460",
+  appId: "1:330630468460:web:038cfc5a5c7e6be7a25949",
+  measurementId: "G-3DE26D1YRL",
+  databaseURL: "https://brgy-system-44d04-default-rtdb.firebaseio.com/" // Added Database URL
+};
+// ============================================================
+// INITIALIZE FIREBASE (with fallback to localStorage demo mode)
+// ============================================================
+let db = null, auth = null, useDemo = false;
+
+try {
+  // Check if Firebase is available
+  if (typeof firebase === 'undefined') {
+    throw new Error('Firebase SDK not loaded');
+  }
+  
+  // Initialize Firebase app
+  firebase.initializeApp(firebaseConfig);
+  console.log("✅ Firebase app initialized");
+  
+  // Get auth instance
+  auth = firebase.auth();
+  console.log("✅ Firebase auth initialized");
+  
+  // Get firestore instance
+  db = firebase.firestore();
+  console.log("✅ Firebase Firestore initialized");
+  
+  // Optional: Enable offline persistence
+  try {
+    db.enablePersistence();
+    console.log("✅ Firestore persistence enabled");
+  } catch (err) {
+    console.warn("Persistence already enabled or not available:", err.code);
+  }
+  
+  // Note: Your system is built for Firestore, 
+  // but if you wish to use the Realtime Database URL provided:
+  // const rtdb = firebase.database(); 
+} catch(e) {
+  console.error("❌ Firebase init failed:", e.message);
+  console.warn("🔄 Using demo mode (localStorage) instead");
+  useDemo = true;
+}
+// ============================================================
+// DEMO DATA (localStorage-backed when Firebase not configured)
+// ============================================================
+const DEMO_USERS = {
+  "captain@brgy.ph": { password:"captain123", role:"captain", name:"Hon. Roberto Santos" },
+  "assistant@brgy.ph": { password:"assistant123", role:"assistant", name:"Maria Reyes" },
+  "health@brgy.ph": { password:"health123", role:"health", name:"Nurse Ana Lim" }
+};
+
+let currentUser = null;
+let demoData = {
+  residents: [],
+  blotters: [],
+  summons: [],
+  certificates: [],
+  clearances: [],
+  requests: [],
+  healthRecords: [],
+  vaccines: [],
+  maternal: []
+};
+
+function loadDemoData() {
+  const saved = localStorage.getItem('brgy_demo_data');
+  if (saved) {
+    try { demoData = JSON.parse(saved); } catch(e) {}
+  } else {
+    // Seed with sample residents
+    demoData.residents = [
+      { id:'R001', firstName:'Juan', lastName:'dela Cruz', birthdate:'1985-03-15', gender:'Male', address:'123 Rizal St', civilStatus:'Married', religion:'Catholic', householdId:'HH001', contact:'09171234567', createdAt: new Date().toISOString() },
+      { id:'R002', firstName:'Maria', lastName:'dela Cruz', birthdate:'1988-07-22', gender:'Female', address:'123 Rizal St', civilStatus:'Married', religion:'Catholic', householdId:'HH001', contact:'09181234567', createdAt: new Date().toISOString() },
+      { id:'R003', firstName:'Pedro', lastName:'Santos', birthdate:'1972-11-05', gender:'Male', address:'45 Mabini Ave', civilStatus:'Single', religion:'Catholic', householdId:'HH002', contact:'09191234567', createdAt: new Date().toISOString() },
+    ];
+    demoData.certificates = [
+      { id:'C001', residentId:'R001', residentName:'Juan dela Cruz', type:'Barangay Certificate', purpose:'Employment', status:'Released', date: new Date().toISOString(), orNumber:'OR-001' }
+    ];
+    demoData.clearances = [
+      { id:'CL001', residentId:'R002', residentName:'Maria dela Cruz', type:'Barangay Clearance', purpose:'Business', status:'Released', date: new Date().toISOString(), orNumber:'OR-002' }
+    ];
+    demoData.blotters = [
+      { id:'B001', complainant:'Pedro Santos', respondent:'Rodrigo Cruz', incident:'Noise Complaint', date:'2024-01-10', status:'Pending', details:'Loud music at night' }
+    ];
+    demoData.summons = [
+      { id:'S001', to:'Rodrigo Cruz', reason:'Blotter B001 Follow-up', date:'2024-01-12', status:'Served', issuedBy:'Maria Reyes' }
+    ];
+    demoData.requests = [
+      { id:'REQ001', name:'Jose Rizal', address:'12 Luna St', reqType:'Barangay Certificate', purpose:'Scholarship application', status:'Pending', submittedAt: new Date().toISOString(), gender:'Male', contact:'09231234567' }
+    ];
+    saveDemoData();
+  }
+}
+
+function saveDemoData() {
+  localStorage.setItem('brgy_demo_data', JSON.stringify(demoData));
+}
+
+function genId(prefix) {
+  return prefix + Date.now().toString(36).toUpperCase();
+}
+
+function calcAge(birthdate) {
+  if(!birthdate) return '—';
+  const today = new Date();
+  const bd = new Date(birthdate);
+  let age = today.getFullYear() - bd.getFullYear();
+  const m = today.getMonth() - bd.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < bd.getDate())) age--;
+  return age;
+}
+
+function formatDate(iso) {
+  if(!iso) return '—';
+  return new Date(iso).toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' });
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+function showSplash() {
+  document.getElementById('public-page').style.display='none';
+  document.getElementById('splash').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+function showPublic() {
+  document.getElementById('public-page').style.display='block';
+  document.getElementById('splash').style.display='none';
+  document.getElementById('app').style.display='none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display='none';
+  
+  if(!email||!pass){errEl.textContent='Please enter email and password.';errEl.style.display='flex';return;}
+  
+  const btn = document.getElementById('login-btn');
+  btn.innerHTML='<span class="spinner"></span> Signing in...';
+  btn.disabled=true;
+  
+  // Demo mode OR Firebase not configured
+  if(useDemo) {
+    console.log("logging in with demo mode");
+    await new Promise(r=>setTimeout(r,600));
+    const u = DEMO_USERS[email];
+    if(u && u.password===pass){
+      currentUser = { email, role:u.role, name:u.name };
+      initApp();
+    } else {
+      errEl.textContent='❌ Invalid credentials. Use demo accounts below: captain@brgy.ph / assistant@brgy.ph / health@brgy.ph';
+      errEl.style.display='flex';
+    }
+    btn.innerHTML='🔐 Sign In';
+    btn.disabled=false;
+    return;
+  }
+  
+  // Real Firebase Authentication
+  try {
+    if (!auth) {
+      throw new Error('Firebase authentication not available');
+    }
+    
+    console.log("Attempting Firebase authentication for:", email);
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    console.log("✅ Authentication successful:", cred.user.uid);
+    
+    // Try to fetch user profile from Firestore
+    try {
+      const snap = await db.collection('officials').doc(cred.user.uid).get();
+      if(snap.exists) {
+        console.log("✅ User profile found");
+        currentUser = { email, uid:cred.user.uid, ...snap.data() };
+        initApp();
+      } else {
+        console.warn("⚠️ User profile not found in Firestore");
+        errEl.textContent='User profile not found. Please contact administrator.';
+        errEl.style.display='flex';
+        await auth.signOut();
+      }
+    } catch(firestoreErr) {
+      console.error("❌ Firestore error:", firestoreErr.message);
+      errEl.textContent='Database error: ' + firestoreErr.message;
+      errEl.style.display='flex';
+      await auth.signOut();
+    }
+  } catch(e) {
+    console.error("❌ Authentication error:", e.code, e.message);
+    
+    // Provide helpful error messages based on error code
+    let errorMsg = e.message;
+    if(e.code === 'auth/configuration-not-found') {
+      errorMsg = '⚠️ Firebase authentication not configured. Using demo mode instead.';
+      console.warn(errorMsg);
+      useDemo = true;
+      // Retry with demo mode
+      await new Promise(r=>setTimeout(r,300));
+      doLogin();
+      return;
+    } else if(e.code === 'auth/user-not-found') {
+      errorMsg = 'User account not found.';
+    } else if(e.code === 'auth/wrong-password') {
+      errorMsg = 'Incorrect password.';
+    } else if(e.code === 'auth/invalid-email') {
+      errorMsg = 'Invalid email address.';
+    } else if(e.code === 'auth/too-many-requests') {
+      errorMsg = 'Too many login attempts. Try again later.';
+    }
+    
+    errEl.textContent='❌ ' + errorMsg;
+    errEl.style.display='flex';
+  }
+  btn.innerHTML='🔐 Sign In';
+  btn.disabled=false;
+}
+
+function doLogout() {
+  currentUser = null;
+  if(auth && !useDemo) auth.signOut();
+  document.getElementById('app').style.display='none';
+  document.getElementById('splash').style.display='flex';
+}
+
+// ============================================================
+// APP INIT
+// ============================================================
+function initApp() {
+  loadDemoData();
+  document.getElementById('splash').style.display='none';
+  document.getElementById('app').style.display='block';
+  
+  const av = (currentUser.name||'U')[0].toUpperCase();
+  document.getElementById('user-avatar').textContent=av;
+  document.getElementById('user-name-display').textContent=currentUser.name;
+  
+  const roleLabels = {captain:'Barangay Captain',assistant:'Barangay Assistant',health:'Healthcare Dept.'};
+  document.getElementById('user-role-display').textContent=roleLabels[currentUser.role]||currentUser.role;
+  
+  buildNav();
+  navigateTo('dashboard');
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const navItems = {
+  captain: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+  ],
+  assistant: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { section:'Residents' },
+    { id:'residents', icon:'👥', label:'Residents List' },
+    { id:'households', icon:'🏠', label:'Households' },
+    { section:'Documents' },
+    { id:'certificates', icon:'📜', label:'Brgy. Certificates' },
+    { id:'clearances', icon:'✅', label:'Brgy. Clearances' },
+    { section:'Cases' },
+    { id:'blotters', icon:'📋', label:'Blotter Records' },
+    { id:'summons', icon:'📨', label:'Summons' },
+    { section:'Requests' },
+    { id:'requests', icon:'📥', label:'Resident Requests', badge:true },
+  ],
+  health: [
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { section:'Healthcare' },
+    { id:'health-records', icon:'🏥', label:'Health Records' },
+    { id:'vaccines', icon:'💉', label:'Vaccination' },
+    { id:'maternal', icon:'🤱', label:'Maternal & Child' },
+    { id:'health-edu', icon:'📚', label:'Health Education' },
+    { id:'primary-care', icon:'🩺', label:'Primary Healthcare' },
+  ]
+};
+
+function buildNav() {
+  const nav = document.getElementById('main-nav');
+  const items = navItems[currentUser.role] || navItems.assistant;
+  nav.innerHTML = items.map(item => {
+    if(item.section) return `<div class="nav-section-label">${item.section}</div>`;
+    const badge = item.badge ? `<span class="notif-dot" id="badge-${item.id}"></span>` : '';
+    return `<div class="nav-item" id="nav-${item.id}" onclick="navigateTo('${item.id}')">
+      <span class="nav-icon">${item.icon}</span> ${item.label}${badge}
+    </div>`;
+  }).join('');
+}
+
+function navigateTo(page) {
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const navEl = document.getElementById(`nav-${page}`);
+  if(navEl) navEl.classList.add('active');
+  
+  const content = document.getElementById('main-content');
+  const pages = {
+    dashboard: renderDashboard,
+    residents: renderResidents,
+    households: renderHouseholds,
+    certificates: renderCertificates,
+    clearances: renderClearances,
+    blotters: renderBlotters,
+    summons: renderSummons,
+    requests: renderRequests,
+    'health-records': renderHealthRecords,
+    vaccines: renderVaccines,
+    maternal: renderMaternal,
+    'health-edu': renderHealthEdu,
+    'primary-care': renderPrimaryCare,
+  };
+  
+  if(pages[page]) content.innerHTML = pages[page]();
+  else content.innerHTML = `<div class="empty-state"><div class="emoji">🚧</div><div>Page under construction</div></div>`;
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const r = demoData.residents.length;
+  const bl = demoData.blotters.length;
+  const su = demoData.summons.length;
+  const cert = demoData.certificates.length;
+  const clear = demoData.clearances.length;
+  const req = demoData.requests.filter(x=>x.status==='Pending').length;
+  const males = demoData.residents.filter(x=>x.gender==='Male').length;
+  const females = demoData.residents.filter(x=>x.gender==='Female').length;
+  
+  const pending_bl = demoData.blotters.filter(x=>x.status==='Pending').length;
+  const pending_su = demoData.summons.filter(x=>x.status==='Pending').length;
+  
+  const recentDocs = [...demoData.certificates, ...demoData.clearances]
+    .sort((a,b)=>new Date(b.date||0)-new Date(a.date||0)).slice(0,5);
+  
+  const recentReq = demoData.requests.slice(-3).reverse();
+  
+  return `
+    <div class="page-header">
+      <div class="page-title">📊 Dashboard</div>
+      <div class="page-sub">Overview of Barangay activities — ${new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">${r}</div>
+        <div class="stat-label">Total Residents</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">📜</div>
+        <div class="stat-value">${cert}</div>
+        <div class="stat-label">Certificates Issued</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value">${clear}</div>
+        <div class="stat-label">Clearances Issued</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">${bl}</div>
+        <div class="stat-label">Blotter Records</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">📨</div>
+        <div class="stat-value">${su}</div>
+        <div class="stat-label">Summons Issued</div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon">📥</div>
+        <div class="stat-value">${req}</div>
+        <div class="stat-label">Pending Requests</div>
+      </div>
+    </div>
+    
+    <div class="grid-2" style="gap:20px">
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:16px">👥 Population Breakdown</div>
+        <div class="info-row"><span class="info-label">👨 Male Residents</span><span class="info-value">${males}</span></div>
+        <div class="info-row"><span class="info-label">👩 Female Residents</span><span class="info-value">${females}</span></div>
+        <div class="info-row"><span class="info-label">🏠 Households</span><span class="info-value">${[...new Set(demoData.residents.map(x=>x.householdId))].length}</span></div>
+        <div class="info-row"><span class="info-label">📋 Pending Blotters</span><span class="info-value"><span class="badge badge-red">${pending_bl}</span></span></div>
+        <div class="info-row"><span class="info-label">📨 Pending Summons</span><span class="info-value"><span class="badge badge-yellow">${pending_su}</span></span></div>
+        <div class="info-row"><span class="info-label">💉 Vaccinated</span><span class="info-value">${demoData.vaccines.length}</span></div>
+      </div>
+      
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:16px">📋 Recent Documents</div>
+        ${recentDocs.length ? recentDocs.map(d=>`
+          <div class="info-row">
+            <span class="info-label" style="font-size:.85rem">${d.residentName}</span>
+            <span class="info-value"><span class="badge badge-green" style="font-size:.7rem">${d.type?.split(' ').pop()}</span></span>
+          </div>
+        `).join('') : '<div class="empty-state" style="padding:20px"><div>No documents yet</div></div>'}
+      </div>
+    </div>
+    
+    ${currentUser.role!=='captain' ? `
+    <div class="card" style="margin-top:20px">
+      <div style="font-weight:600;margin-bottom:16px">📥 Latest Resident Requests</div>
+      ${recentReq.length ? `
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Request</th><th>Submitted</th><th>Status</th></tr></thead>
+            <tbody>
+              ${recentReq.map(r=>`
+                <tr>
+                  <td>${r.name}</td>
+                  <td>${r.reqType}</td>
+                  <td>${formatDate(r.submittedAt)}</td>
+                  <td><span class="badge ${r.status==='Pending'?'badge-yellow':r.status==='Done'?'badge-green':'badge-blue'}">${r.status}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : '<div class="empty-state" style="padding:16px"><div>No requests</div></div>'}
+    </div>` : ''}
+  `;
+}
+
+// ============================================================
+// RESIDENTS
+// ============================================================
+function renderResidents() {
+  const search = window._resSearch||'';
+  const filtered = demoData.residents.filter(r=>
+    `${r.firstName} ${r.lastName} ${r.address}`.toLowerCase().includes(search.toLowerCase())
+  );
+  
+  return `
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="page-title">👥 Residents Registry</div>
+        <div class="page-sub">${filtered.length} resident(s) registered</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddResident()">➕ Add Resident</button>
+    </div>
+    
+    <div class="search-bar">
+      <div class="search-input-wrap" style="max-width:340px">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Search name or address..." value="${search}" oninput="window._resSearch=this.value;navigateTo('residents')">
+      </div>
+    </div>
+    
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Age</th><th>Gender</th><th>Civil Status</th><th>Household</th><th>Address</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${filtered.length ? filtered.map(r=>`
+              <tr>
+                <td><strong>${r.lastName}, ${r.firstName}</strong></td>
+                <td>${calcAge(r.birthdate)}</td>
+                <td><span class="badge ${r.gender==='Male'?'badge-blue':'badge-purple'}">${r.gender}</span></td>
+                <td>${r.civilStatus||'—'}</td>
+                <td><span class="badge badge-gray">${r.householdId||'—'}</span></td>
+                <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.address||'—'}</td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" onclick="viewResident('${r.id}')">👁️</button>
+                  <button class="btn btn-ghost btn-sm" onclick="editResident('${r.id}')">✏️</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteResident('${r.id}')">🗑️</button>
+                </td>
+              </tr>
+            `).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">👥</div><div>No residents found</div></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function residentFormHTML(data={}) {
+  return `
+    <div class="grid-2">
+      <div class="form-group"><label>First Name *</label><input type="text" id="r-fname" value="${data.firstName||''}"></div>
+      <div class="form-group"><label>Last Name *</label><input type="text" id="r-lname" value="${data.lastName||''}"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Middle Name</label><input type="text" id="r-mname" value="${data.middleName||''}"></div>
+      <div class="form-group">
+        <label>Birthdate * <span id="age-display" style="color:var(--accent);font-size:.85rem"></span></label>
+        <input type="date" id="r-bday" value="${data.birthdate||''}" oninput="document.getElementById('age-display').textContent='Age: '+calcAge(this.value)">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Gender *</label>
+        <select id="r-gender">
+          <option value="">Select...</option>
+          ${['Male','Female','Other'].map(g=>`<option ${data.gender===g?'selected':''}>${g}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Civil Status</label>
+        <select id="r-civil">
+          <option value="">Select...</option>
+          ${['Single','Married','Widowed','Separated','Annulled'].map(s=>`<option ${data.civilStatus===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Religion</label><input type="text" id="r-religion" value="${data.religion||''}" placeholder="e.g. Catholic"></div>
+      <div class="form-group"><label>Household ID</label><input type="text" id="r-household" value="${data.householdId||''}" placeholder="e.g. HH001"></div>
+    </div>
+    <div class="form-group"><label>Complete Address *</label><input type="text" id="r-address" value="${data.address||''}"></div>
+    <div class="form-group"><label>Contact Number</label><input type="text" id="r-contact" value="${data.contact||''}"></div>
+    <div id="res-form-error" class="alert alert-error" style="display:none"></div>
+  `;
+}
+
+function openAddResident() {
+  openModal('➕ Add Resident', residentFormHTML(), [
+    {label:'Cancel', cls:'btn-ghost', action:'closeModal()'},
+    {label:'💾 Save Resident', cls:'btn-primary', action:'saveResident()'}
+  ]);
+}
+
+function saveResident(id=null) {
+  const fn=v('r-fname'),ln=v('r-lname'),bd=v('r-bday'),gn=v('r-gender'),addr=v('r-address');
+  if(!fn||!ln||!bd||!gn||!addr){
+    document.getElementById('res-form-error').textContent='Please fill required fields.';
+    document.getElementById('res-form-error').style.display='flex';
+    return;
+  }
+  const data = {
+    firstName:fn,lastName:ln,middleName:v('r-mname'),birthdate:bd,gender:gn,
+    civilStatus:v('r-civil'),religion:v('r-religion'),householdId:v('r-household'),
+    address:addr,contact:v('r-contact')
+  };
+  if(id) {
+    const i = demoData.residents.findIndex(r=>r.id===id);
+    if(i>=0) demoData.residents[i] = {...demoData.residents[i],...data};
+  } else {
+    data.id = genId('R');
+    data.createdAt = new Date().toISOString();
+    demoData.residents.push(data);
+  }
+  saveDemoData(); closeModal(); navigateTo('residents');
+}
+
+function editResident(id) {
+  const r = demoData.residents.find(x=>x.id===id);
+  if(!r) return;
+  openModal('✏️ Edit Resident', residentFormHTML(r), [
+    {label:'Cancel', cls:'btn-ghost', action:'closeModal()'},
+    {label:'💾 Update', cls:'btn-primary', action:`saveResident('${id}')`}
+  ]);
+  setTimeout(()=>{
+    const bd = document.getElementById('r-bday');
+    if(bd&&bd.value) document.getElementById('age-display').textContent='Age: '+calcAge(bd.value);
+  },100);
+}
+
+function viewResident(id) {
+  const r = demoData.residents.find(x=>x.id===id);
+  if(!r) return;
+  const docs = [...demoData.certificates,...demoData.clearances].filter(d=>d.residentId===id);
+  openModal(`👤 ${r.firstName} ${r.lastName}`, `
+    <div class="info-row"><span class="info-label">Full Name</span><span class="info-value">${r.firstName} ${r.middleName||''} ${r.lastName}</span></div>
+    <div class="info-row"><span class="info-label">Age</span><span class="info-value">${calcAge(r.birthdate)} years old</span></div>
+    <div class="info-row"><span class="info-label">Birthdate</span><span class="info-value">${formatDate(r.birthdate)}</span></div>
+    <div class="info-row"><span class="info-label">Gender</span><span class="info-value">${r.gender}</span></div>
+    <div class="info-row"><span class="info-label">Civil Status</span><span class="info-value">${r.civilStatus||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Religion</span><span class="info-value">${r.religion||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Household ID</span><span class="info-value">${r.householdId||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Address</span><span class="info-value">${r.address}</span></div>
+    <div class="info-row"><span class="info-label">Contact</span><span class="info-value">${r.contact||'—'}</span></div>
+    <div style="margin-top:16px;font-weight:600">📄 Documents (${docs.length})</div>
+    ${docs.map(d=>`<div class="info-row"><span class="info-label">${d.type}</span><span class="info-value"><span class="badge badge-green">${d.status}</span></span></div>`).join('')}
+  `,[{label:'Close',cls:'btn-ghost',action:'closeModal()'}]);
+}
+
+function deleteResident(id) {
+  if(!confirm('Remove this resident from the registry?')) return;
+  demoData.residents = demoData.residents.filter(r=>r.id!==id);
+  saveDemoData(); navigateTo('residents');
+}
+
+// ============================================================
+// HOUSEHOLDS
+// ============================================================
+function renderHouseholds() {
+  const households = {};
+  demoData.residents.forEach(r=>{
+    const hid = r.householdId||'UNASSIGNED';
+    if(!households[hid]) households[hid]=[];
+    households[hid].push(r);
+  });
+  
+  return `
+    <div class="page-header">
+      <div class="page-title">🏠 Household Groups</div>
+      <div class="page-sub">${Object.keys(households).length} household(s) identified</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+      ${Object.entries(households).map(([hid,members])=>`
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <span class="badge badge-blue">${hid}</span>
+            <span style="font-size:.8rem;color:var(--text2)">${members.length} member(s)</span>
+          </div>
+          ${members.map(m=>`
+            <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+              <div style="width:28px;height:28px;border-radius:6px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">${m.firstName[0]}</div>
+              <div>
+                <div style="font-size:.88rem;font-weight:500">${m.firstName} ${m.lastName}</div>
+                <div style="font-size:.75rem;color:var(--text2)">${calcAge(m.birthdate)} yrs • ${m.gender}</div>
+              </div>
+            </div>
+          `).join('')}
+          <div style="margin-top:8px;font-size:.8rem;color:var(--text3)">${members[0]?.address||'—'}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// ============================================================
+// CERTIFICATES
+// ============================================================
+function renderCertificates() {
+  return renderDocPage('certificates','📜','Barangay Certificates','cert');
+}
+function renderClearances() {
+  return renderDocPage('clearances','✅','Barangay Clearances','clear');
+}
+
+function renderDocPage(type, icon, title, prefix) {
+  const items = demoData[type]||[];
+  return `
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="page-title">${icon} ${title}</div>
+        <div class="page-sub">${items.length} record(s)</div>
+      </div>
+      <button class="btn btn-primary" onclick="openIssueDoc('${type}')">➕ Issue ${title.split(' ').pop()}</button>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>OR #</th><th>Resident</th><th>Purpose</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${items.length ? items.map(c=>`
+              <tr>
+                <td><strong>${c.orNumber||'—'}</strong></td>
+                <td>${c.residentName||'—'}</td>
+                <td>${c.purpose||'—'}</td>
+                <td>${formatDate(c.date)}</td>
+                <td><span class="badge ${c.status==='Released'?'badge-green':c.status==='Processing'?'badge-yellow':'badge-gray'}">${c.status}</span></td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" onclick="printDoc('${type}','${c.id}')">🖨️</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteDoc('${type}','${c.id}')">🗑️</button>
+                </td>
+              </tr>
+            `).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="emoji">${icon}</div><div>No records yet</div></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openIssueDoc(type) {
+  const resOptions = demoData.residents.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName}</option>`).join('');
+  const label = type==='certificates'?'Certificate':'Clearance';
+  openModal(`➕ Issue Brgy. ${label}`, `
+    <div class="form-group"><label>Resident *</label><select id="doc-resident"><option value="">Select resident...</option>${resOptions}</select></div>
+    <div class="form-group"><label>Purpose *</label><input type="text" id="doc-purpose" placeholder="e.g. Employment, Scholarship..."></div>
+    <div class="form-group"><label>OR Number</label><input type="text" id="doc-or" placeholder="OR-XXXXX"></div>
+    <div class="form-group"><label>Status</label>
+      <select id="doc-status">
+        <option>Processing</option><option>Released</option>
+      </select>
+    </div>
+    <div id="doc-error" class="alert alert-error" style="display:none"></div>
+  `, [
+    {label:'Cancel',cls:'btn-ghost',action:'closeModal()'},
+    {label:`📜 Issue ${label}`,cls:'btn-primary',action:`saveDoc('${type}')`}
+  ]);
+}
+
+function saveDoc(type) {
+  const resId=v('doc-resident'),purpose=v('doc-purpose');
+  if(!resId||!purpose){
+    document.getElementById('doc-error').textContent='Please fill required fields.';
+    document.getElementById('doc-error').style.display='flex'; return;
+  }
+  const res = demoData.residents.find(r=>r.id===resId);
+  const docTypes = {certificates:'Barangay Certificate',clearances:'Barangay Clearance'};
+  const doc = {
+    id:genId('D'),residentId:resId,residentName:`${res.firstName} ${res.lastName}`,
+    type:docTypes[type],purpose,orNumber:v('doc-or'),
+    status:v('doc-status'),date:new Date().toISOString(),issuedBy:currentUser.name
+  };
+  demoData[type].push(doc);
+  saveDemoData(); closeModal();
+  navigateTo(type);
+}
+
+function deleteDoc(type, id) {
+  if(!confirm('Delete this record?')) return;
+  demoData[type] = demoData[type].filter(d=>d.id!==id);
+  saveDemoData(); navigateTo(type);
+}
+
+function printDoc(type, id) {
+  const item = demoData[type].find(d=>d.id===id);
+  if(!item) return;
+  const res = demoData.residents.find(r=>r.id===item.residentId)||{};
+  const age = calcAge(res.birthdate);
+  const today = new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
+  
+  openModal(`🖨️ ${item.type}`, `
+    <div class="cert-preview" id="cert-print">
+      <div style="text-align:center;margin-bottom:6px;font-size:.9rem;font-family:'DM Sans',sans-serif">Republic of the Philippines</div>
+      <h2>${item.type.toUpperCase()}</h2>
+      <div class="cert-sub">This is to certify that:</div>
+      <div class="cert-body" style="font-family:'DM Sans',sans-serif">
+        <strong>${item.residentName}</strong>, ${age} years of age, ${res.gender||''}, ${res.civilStatus||''}, 
+        a resident of <strong>${res.address||'this barangay'}</strong>, is known to be a law-abiding 
+        citizen of this barangay.<br><br>
+        This certification is issued upon the request of the above-named person for the purpose of 
+        <strong>${item.purpose}</strong> and for whatever legal purpose it may serve.<br><br>
+        Issued this ${today}.
+      </div>
+      <div class="cert-sig">
+        <div style="text-align:center">
+          <div style="border-top:1px solid #333;width:160px;padding-top:4px">Requesting Party</div>
+        </div>
+        <div style="text-align:center">
+          <div style="border-top:1px solid #333;width:200px;padding-top:4px">Barangay Captain</div>
+        </div>
+      </div>
+      <div style="margin-top:16px;text-align:right;font-size:.78rem;font-family:'DM Sans',sans-serif;color:#666">OR No.: ${item.orNumber||'—'} | Doc ID: ${item.id}</div>
+    </div>
+  `,[
+    {label:'Close',cls:'btn-ghost',action:'closeModal()'},
+    {label:'🖨️ Print',cls:'btn-primary',action:'window.print()'}
+  ]);
+}
+
+// ============================================================
+// BLOTTERS
+// ============================================================
+function renderBlotters() {
+  const items = demoData.blotters;
+  return `
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="page-title">📋 Blotter Records</div>
+        <div class="page-sub">${items.length} case(s) on record</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddBlotter()">➕ Record Blotter</button>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Complainant</th><th>Respondent</th><th>Incident</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${items.length ? items.map(b=>`
+              <tr>
+                <td><strong>${b.id}</strong></td>
+                <td>${b.complainant}</td>
+                <td>${b.respondent}</td>
+                <td>${b.incident}</td>
+                <td>${formatDate(b.date)}</td>
+                <td><span class="badge ${b.status==='Resolved'?'badge-green':b.status==='Pending'?'badge-red':'badge-yellow'}">${b.status}</span></td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" onclick="viewBlotter('${b.id}')">👁️</button>
+                  <button class="btn btn-ghost btn-sm" onclick="updateBlotterStatus('${b.id}')">🔄</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteBlotter('${b.id}')">🗑️</button>
+                </td>
+              </tr>
+            `).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">📋</div><div>No blotter records</div></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openAddBlotter() {
+  openModal('📋 Record Blotter Entry', `
+    <div class="grid-2">
+      <div class="form-group"><label>Complainant *</label><input type="text" id="bl-comp" placeholder="Name of complainant"></div>
+      <div class="form-group"><label>Respondent *</label><input type="text" id="bl-resp" placeholder="Name of respondent"></div>
+    </div>
+    <div class="form-group"><label>Incident Type *</label>
+      <select id="bl-incident">
+        <option value="">Select type...</option>
+        <option>Noise Complaint</option><option>Physical Assault</option><option>Theft</option>
+        <option>Property Damage</option><option>Domestic Dispute</option><option>Threat</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Date of Incident *</label><input type="date" id="bl-date"></div>
+    <div class="form-group"><label>Details / Narrative *</label><textarea id="bl-details" rows="4" placeholder="Describe the incident..."></textarea></div>
+    <div class="form-group"><label>Initial Status</label>
+      <select id="bl-status"><option>Pending</option><option>Under Investigation</option><option>Resolved</option></select>
+    </div>
+    <div id="bl-error" class="alert alert-error" style="display:none"></div>
+  `,[
+    {label:'Cancel',cls:'btn-ghost',action:'closeModal()'},
+    {label:'📋 Save Record',cls:'btn-primary',action:'saveBlotter()'}
+  ]);
+}
+
+function saveBlotter() {
+  const comp=v('bl-comp'),resp=v('bl-resp'),inc=v('bl-incident'),date=v('bl-date'),det=v('bl-details');
+  if(!comp||!resp||!inc||!date||!det){
+    document.getElementById('bl-error').textContent='Please fill all required fields.';
+    document.getElementById('bl-error').style.display='flex'; return;
+  }
+  demoData.blotters.push({id:genId('B'),complainant:comp,respondent:resp,incident:inc,date,details:det,status:v('bl-status'),recordedBy:currentUser.name,createdAt:new Date().toISOString()});
+  saveDemoData(); closeModal(); navigateTo('blotters');
+}
+
+function viewBlotter(id) {
+  const b = demoData.blotters.find(x=>x.id===id);
+  if(!b) return;
+  openModal(`📋 Blotter ${b.id}`, `
+    <div class="info-row"><span class="info-label">Complainant</span><span class="info-value">${b.complainant}</span></div>
+    <div class="info-row"><span class="info-label">Respondent</span><span class="info-value">${b.respondent}</span></div>
+    <div class="info-row"><span class="info-label">Incident</span><span class="info-value">${b.incident}</span></div>
+    <div class="info-row"><span class="info-label">Date</span><span class="info-value">${formatDate(b.date)}</span></div>
+    <div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="badge ${b.status==='Resolved'?'badge-green':'badge-red'}">${b.status}</span></span></div>
+    <div class="info-row"><span class="info-label">Recorded By</span><span class="info-value">${b.recordedBy||'—'}</span></div>
+    <div style="margin-top:14px"><div style="color:var(--text2);font-size:.8rem;margin-bottom:6px">DETAILS:</div><div style="background:var(--surface2);padding:12px;border-radius:8px;font-size:.88rem;line-height:1.6">${b.details}</div></div>
+  `,[{label:'Close',cls:'btn-ghost',action:'closeModal()'}]);
+}
+
+function updateBlotterStatus(id) {
+  const b = demoData.blotters.find(x=>x.id===id);
+  if(!b) return;
+  openModal('🔄 Update Status', `
+    <div class="form-group"><label>New Status</label>
+      <select id="bl-new-status">
+        ${['Pending','Under Investigation','Mediation','Resolved','Referred to Police'].map(s=>`<option ${b.status===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Remarks</label><textarea id="bl-remarks" placeholder="Add update notes..."></textarea></div>
+  `,[
+    {label:'Cancel',cls:'btn-ghost',action:'closeModal()'},
+    {label:'Update',cls:'btn-primary',action:`applyBlotterStatus('${id}')`}
+  ]);
+}
+
+function applyBlotterStatus(id) {
+  const b = demoData.blotters.find(x=>x.id===id);
+  if(b){ b.status=v('bl-new-status'); b.remarks=v('bl-remarks'); }
+  saveDemoData(); closeModal(); navigateTo('blotters');
+}
+
+function deleteBlotter(id) {
+  if(!confirm('Delete this blotter record?')) return;
+  demoData.blotters=demoData.blotters.filter(x=>x.id!==id);
+  saveDemoData(); navigateTo('blotters');
+}
+
+// ============================================================
+// SUMMONS
+// ============================================================
+function renderSummons() {
+  const items = demoData.summons;
+  return `
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="page-title">📨 Summons</div>
+        <div class="page-sub">${items.length} summons issued</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddSummons()">➕ Issue Summons</button>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Issued To</th><th>Reason</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${items.length ? items.map(s=>`
+              <tr>
+                <td><strong>${s.id}</strong></td>
+                <td>${s.to}</td>
+                <td>${s.reason}</td>
+                <td>${formatDate(s.date)}</td>
+                <td><span class="badge ${s.status==='Served'?'badge-green':s.status==='Pending'?'badge-yellow':'badge-red'}">${s.status}</span></td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" onclick="markSummons('${s.id}')">✅ Mark Served</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteSummons('${s.id}')">🗑️</button>
+                </td>
+              </tr>
+            `).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="emoji">📨</div><div>No summons issued</div></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openAddSummons() {
+  openModal('📨 Issue Summons', `
+    <div class="form-group"><label>Issue To *</label><input type="text" id="su-to" placeholder="Name of person to summon"></div>
+    <div class="form-group"><label>Related Blotter / Reason *</label><input type="text" id="su-reason" placeholder="Reason for summons"></div>
+    <div class="form-group"><label>Appearance Date *</label><input type="date" id="su-date"></div>
+    <div class="form-group"><label>Appearance Time</label><input type="time" id="su-time"></div>
+    <div class="form-group"><label>Notes</label><textarea id="su-notes"></textarea></div>
+    <div id="su-error" class="alert alert-error" style="display:none"></div>
+  `,[
+    {label:'Cancel',cls:'btn-ghost',action:'closeModal()'},
+    {label:'📨 Issue',cls:'btn-primary',action:'saveSummons()'}
+  ]);
+}
+
+function saveSummons() {
+  const to=v('su-to'),reason=v('su-reason'),date=v('su-date');
+  if(!to||!reason||!date){document.getElementById('su-error').textContent='Fill required fields.';document.getElementById('su-error').style.display='flex';return;}
+  demoData.summons.push({id:genId('S'),to,reason,date,time:v('su-time'),notes:v('su-notes'),status:'Pending',issuedBy:currentUser.name,issuedAt:new Date().toISOString()});
+  saveDemoData(); closeModal(); navigateTo('summons');
+}
+
+function markSummons(id) {
+  const s=demoData.summons.find(x=>x.id===id);
+  if(s) s.status='Served';
+  saveDemoData(); navigateTo('summons');
+}
+
+function deleteSummons(id) {
+  if(!confirm('Delete this summons?')) return;
+  demoData.summons=demoData.summons.filter(x=>x.id!==id);
+  saveDemoData(); navigateTo('summons');
+}
+
+// ============================================================
+// RESIDENT REQUESTS (from public portal)
+// ============================================================
+function renderRequests() {
+  const pending = demoData.requests.filter(r=>r.status==='Pending').length;
+  return `
+    <div class="page-header">
+      <div class="page-title">📥 Resident Requests</div>
+      <div class="page-sub">${pending} pending request(s)</div>
+    </div>
+    ${pending>0 ? `<div class="alert alert-info">📬 You have <strong>${pending}</strong> pending request(s) from residents.</div>` : ''}
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Address</th><th>Request Type</th><th>Purpose</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${demoData.requests.length ? demoData.requests.slice().reverse().map(r=>`
+              <tr>
+                <td><strong>${r.name}</strong></td>
+                <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.address}</td>
+                <td>${r.reqType}</td>
+                <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.purpose}</td>
+                <td>${formatDate(r.submittedAt)}</td>
+                <td><span class="badge ${r.status==='Pending'?'badge-yellow':r.status==='Done'?'badge-green':'badge-blue'}">${r.status}</span></td>
+                <td style="white-space:nowrap">
+                  <button class="btn btn-ghost btn-sm" onclick="viewRequest('${r.id}')">👁️</button>
+                  <button class="btn btn-primary btn-sm" onclick="processRequest('${r.id}')">⚙️ Process</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteRequest('${r.id}')">🗑️</button>
+                </td>
+              </tr>
+            `).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">📥</div><div>No requests received yet</div></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function viewRequest(id) {
+  const r=demoData.requests.find(x=>x.id===id);
+  if(!r) return;
+  openModal('📋 Request Details',`
+    <div class="info-row"><span class="info-label">Name</span><span class="info-value">${r.name}</span></div>
+    <div class="info-row"><span class="info-label">Birthday</span><span class="info-value">${r.birthday||'—'} (Age: ${calcAge(r.birthday)})</span></div>
+    <div class="info-row"><span class="info-label">Gender</span><span class="info-value">${r.gender||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Address</span><span class="info-value">${r.address}</span></div>
+    <div class="info-row"><span class="info-label">Contact</span><span class="info-value">${r.contact||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Request Type</span><span class="info-value"><strong>${r.reqType}</strong></span></div>
+    <div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="badge ${r.status==='Pending'?'badge-yellow':'badge-green'}">${r.status}</span></span></div>
+    <div style="margin-top:14px"><div style="color:var(--text2);font-size:.8rem;margin-bottom:6px">PURPOSE:</div>
+    <div style="background:var(--surface2);padding:12px;border-radius:8px;font-size:.88rem">${r.purpose}</div></div>
+  `,[
+    {label:'Close',cls:'btn-ghost',action:'closeModal()'},
+    {label:'⚙️ Process',cls:'btn-primary',action:`closeModal();processRequest('${id}')`}
+  ]);
+}
+
+function processRequest(id) {
+  const r=demoData.requests.find(x=>x.id===id);
+  if(!r) return;
+  openModal('⚙️ Process Request',`
+    <div class="alert alert-info" style="margin-bottom:16px">Requestor: <strong>${r.name}</strong> — ${r.reqType}</div>
+    <div class="form-group"><label>Update Status</label>
+      <select id="req-status">
+        <option value="Pending" ${r.status==='Pending'?'selected':''}>Pending</option>
+        <option value="Processing" ${r.status==='Processing'?'selected':''}>Processing</option>
+        <option value="Ready for Pickup" ${r.status==='Ready for Pickup'?'selected':''}>Ready for Pickup</option>
+        <option value="Done" ${r.status==='Done'?'selected':''}>Done</option>
+        <option value="Rejected" ${r.status==='Rejected'?'selected':''}>Rejected</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Remarks</label><textarea id="req-remarks" placeholder="Add notes for processing...">${r.remarks||''}</textarea></div>
+  `,[
+    {label:'Cancel',cls:'btn-ghost',action:'closeModal()'},
+    {label:'💾 Update',cls:'btn-primary',action:`applyRequest('${id}')`}
+  ]);
+}
+
+function applyRequest(id) {
+  const r=demoData.requests.find(x=>x.id===id);
+  if(r){r.status=v('req-status');r.remarks=v('req-remarks');r.processedBy=currentUser.name;}
+  saveDemoData(); closeModal(); navigateTo('requests');
+}
+
+function deleteRequest(id) {
+  if(!confirm('Delete this request?')) return;
+  demoData.requests=demoData.requests.filter(x=>x.id!==id);
+  saveDemoData(); navigateTo('requests');
+}
+
+// ============================================================
+// HEALTH RECORDS
+// ============================================================
+function renderHealthRecords() {
+  const items = demoData.healthRecords||[];
+  const resOptions = demoData.residents.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName}</option>`).join('');
+  return `
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="page-title">🏥 Health Records</div>
+        <div class="page-sub">${items.length} health record(s)</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddHealth()">➕ Add Record</button>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Resident</th><th>Date</th><th>Blood Pressure</th><th>Weight</th><th>Height</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${items.length ? items.map(h=>{
+              const res=demoData.residents.find(r=>r.id===h.residentId)||{};
+              return `<tr>
+                <td><strong>${res.firstName||'—'} ${res.lastName||''}</strong></td>
+                <td>${formatDate(h.date)}</td>
+                <td>${h.bp||'—'}</td>
+                <td>${h.weight||'—'}</td>
+                <td>${h.height||'—'}</td>
+                <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.notes||'—'}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteHealthRec('${h.id}')">🗑️</button></td>
+              </tr>`;
+            }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">🏥</div><div>No health records yet</div></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openAddHealth() {
+  const resOptions = demoData.residents.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName}</option>`).join('');
+  openModal('🏥 Add Health Record',`
+    <div class="form-group"><label>Resident *</label><select id="h-res"><option value="">Select...</option>${resOptions}</select></div>
+    <div class="form-group"><label>Date *</label><input type="date" id="h-date"></div>
+    <div class="grid-3">
+      <div class="form-group"><label>Blood Pressure</label><input type="text" id="h-bp" placeholder="120/80"></div>
+      <div class="form-group"><label>Weight (kg)</label><input type="number" id="h-weight"></div>
+      <div class="form-group"><label>Height (cm)</label><input type="number" id="h-height"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Temperature (°C)</label><input type="number" id="h-temp" step="0.1"></div>
+      <div class="form-group"><label>Pulse Rate</label><input type="number" id="h-pulse"></div>
+    </div>
+    <div class="form-group"><label>Chief Complaint</label><input type="text" id="h-complaint"></div>
+    <div class="form-group"><label>Diagnosis / Notes</label><textarea id="h-notes"></textarea></div>
+    <div id="h-error" class="alert alert-error" style="display:none"></div>
+  `,[
+    {label:'Cancel',cls:'btn-ghost',action:'closeModal()'},
+    {label:'💾 Save',cls:'btn-primary',action:'saveHealthRec()'}
+  ]);
+}
+
+function saveHealthRec() {
+  const res=v('h-res'),date=v('h-date');
+  if(!res||!date){document.getElementById('h-error').textContent='Select resident and date.';document.getElementById('h-error').style.display='flex';return;}
+  if(!demoData.healthRecords) demoData.healthRecords=[];
+  demoData.healthRecords.push({id:genId('HR'),residentId:res,date,bp:v('h-bp'),weight:v('h-weight'),height:v('h-height'),temp:v('h-temp'),pulse:v('h-pulse'),complaint:v('h-complaint'),notes:v('h-notes'),recordedBy:currentUser.name});
+  saveDemoData(); closeModal(); navigateTo('health-records');
+}
+
+function deleteHealthRec(id) {
+  if(!confirm('Delete?')) return;
+  demoData.healthRecords=demoData.healthRecords.filter(x=>x.id!==id);
+  saveDemoData(); navigateTo('health-records');
+}
+
+// ============================================================
+// VACCINATION
+// ============================================================
+function renderVaccines() {
+  const items = demoData.vaccines||[];
+  return `
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div><div class="page-title">💉 Vaccination Records</div><div class="page-sub">${items.length} vaccination record(s)</div></div>
+      <button class="btn btn-primary" onclick="openAddVaccine()">➕ Add Vaccine</button>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Resident</th><th>Vaccine</th><th>Dose</th><th>Date Given</th><th>Next Due</th><th>Admin By</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${items.length ? items.map(v=>{
+              const res=demoData.residents.find(r=>r.id===v.residentId)||{};
+              return `<tr>
+                <td><strong>${res.firstName||'—'} ${res.lastName||''}</strong></td>
+                <td>${v.vaccine}</td>
+                <td><span class="badge badge-blue">${v.dose}</span></td>
+                <td>${formatDate(v.dateGiven)}</td>
+                <td>${v.nextDue||'—'}</td>
+                <td>${v.adminBy||'—'}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteVaccine('${v.id}')">🗑️</button></td>
+              </tr>`;
+            }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">💉</div><div>No vaccination records</div></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openAddVaccine() {
+  const resOptions = demoData.residents.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName}</option>`).join('');
+  openModal('💉 Add Vaccination Record',`
+    <div class="form-group"><label>Resident *</label><select id="v-res"><option value="">Select...</option>${resOptions}</select></div>
+    <div class="form-group"><label>Vaccine Name *</label>
+      <select id="v-vacc">
+        <option value="">Select vaccine...</option>
+        <option>BCG</option><option>Hepatitis B</option><option>DPT</option><option>OPV/IPV</option>
+        <option>Measles-MR</option><option>MMR</option><option>COVID-19</option><option>Influenza</option>
+        <option>Pneumococcal</option><option>Rotavirus</option><option>Other</option>
+      </select>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Dose *</label>
+        <select id="v-dose"><option>1st Dose</option><option>2nd Dose</option><option>3rd Dose</option><option>Booster</option></select>
+      </div>
+      <div class="form-group"><label>Date Given *</label><input type="date" id="v-date"></div>
+    </div>
+    <div class="form-group"><label>Next Due Date</label><input type="date" id="v-next"></div>
+    <div class="form-group"><label>Administered By</label><input type="text" id="v-admin" value="${currentUser.name}"></div>
+    <div class="form-group"><label>Remarks</label><textarea id="v-remarks"></textarea></div>
+    <div id="v-error" class="alert alert-error" style="display:none"></div>
+  `,[
+    {label:'Cancel',cls:'btn-ghost',action:'closeModal()'},
+    {label:'💾 Save',cls:'btn-primary',action:'saveVaccine()'}
+  ]);
+}
+
+function saveVaccine() {
+  const res=v('v-res'),vacc=v('v-vacc'),date=v('v-date');
+  if(!res||!vacc||!date){document.getElementById('v-error').textContent='Fill required fields.';document.getElementById('v-error').style.display='flex';return;}
+  if(!demoData.vaccines) demoData.vaccines=[];
+  demoData.vaccines.push({id:genId('V'),residentId:res,vaccine:vacc,dose:v('v-dose'),dateGiven:date,nextDue:v('v-next'),adminBy:v('v-admin'),remarks:v('v-remarks')});
+  saveDemoData(); closeModal(); navigateTo('vaccines');
+}
+
+function deleteVaccine(id) {
+  if(!confirm('Delete?')) return;
+  demoData.vaccines=demoData.vaccines.filter(x=>x.id!==id);
+  saveDemoData(); navigateTo('vaccines');
+}
+
+// ============================================================
+// MATERNAL & CHILD HEALTH
+// ============================================================
+function renderMaternal() {
+  const items = demoData.maternal||[];
+  const females = demoData.residents.filter(r=>r.gender==='Female');
+  const resOptions = females.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName} (Age: ${calcAge(r.birthdate)})</option>`).join('');
+  
+  return `
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div><div class="page-title">🤱 Maternal & Child Health</div><div class="page-sub">${items.length} record(s)</div></div>
+      <button class="btn btn-primary" onclick="openAddMaternal('${resOptions.replace(/'/g,"\\'")}')">➕ Add Record</button>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Mother</th><th>Type</th><th>Visit Date</th><th>AOG/Age</th><th>Status</th><th>Notes</th><th>Act.</th></tr></thead>
+          <tbody>
+            ${items.length ? items.map(m=>{
+              const res=demoData.residents.find(r=>r.id===m.residentId)||{};
+              return `<tr>
+                <td><strong>${res.firstName||'—'} ${res.lastName||''}</strong></td>
+                <td><span class="badge badge-purple">${m.type}</span></td>
+                <td>${formatDate(m.visitDate)}</td>
+                <td>${m.aog||'—'}</td>
+                <td><span class="badge badge-green">${m.status||'Active'}</span></td>
+                <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.notes||'—'}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteMaternal('${m.id}')">🗑️</button></td>
+              </tr>`;
+            }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">🤱</div><div>No maternal records</div></div></td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function openAddMaternal(resOptions) {
+  const females = demoData.residents.filter(r=>r.gender==='Female');
+  const opts = females.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName} (Age: ${calcAge(r.birthdate)})</option>`).join('');
+  openModal('🤱 Add Maternal / Child Record',`
+    <div class="form-group"><label>Patient *</label><select id="m-res"><option value="">Select patient...</option>${opts}</select></div>
+    <div class="form-group"><label>Record Type *</label>
+      <select id="m-type">
+        <option>Prenatal Visit</option><option>Postnatal Visit</option>
+        <option>Child Health Check</option><option>Newborn Screening</option>
+        <option>Family Planning</option><option>Breastfeeding Consultation</option>
+      </select>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Visit Date *</label><input type="date" id="m-date"></div>
+      <div class="form-group"><label>AOG / Child Age</label><input type="text" id="m-aog" placeholder="e.g. 28 weeks / 3 months"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Weight (kg)</label><input type="number" id="m-weight" step="0.1"></div>
+      <div class="form-group"><label>Blood Pressure</label><input type="text" id="m-bp" placeholder="120/80"></div>
+    </div>
+    <div class="form-group"><label>Status</label>
+      <select id="m-status"><option>Active</option><option>Completed</option><option>Referred</option></select>
+    </div>
+    <div class="form-group"><label>Notes / Findings</label><textarea id="m-notes"></textarea></div>
+    <div id="m-error" class="alert alert-error" style="display:none"></div>
+  `,[
+    {label:'Cancel',cls:'btn-ghost',action:'closeModal()'},
+    {label:'💾 Save',cls:'btn-primary',action:'saveMaternal()'}
+  ]);
+}
+
+function saveMaternal() {
+  const res=v('m-res'),date=v('m-date');
+  if(!res||!date){document.getElementById('m-error').textContent='Select patient and date.';document.getElementById('m-error').style.display='flex';return;}
+  if(!demoData.maternal) demoData.maternal=[];
+  demoData.maternal.push({id:genId('M'),residentId:res,type:v('m-type'),visitDate:date,aog:v('m-aog'),weight:v('m-weight'),bp:v('m-bp'),status:v('m-status'),notes:v('m-notes'),recordedBy:currentUser.name});
+  saveDemoData(); closeModal(); navigateTo('maternal');
+}
+
+function deleteMaternal(id) {
+  if(!confirm('Delete?')) return;
+  demoData.maternal=demoData.maternal.filter(x=>x.id!==id);
+  saveDemoData(); navigateTo('maternal');
+}
+
+// ============================================================
+// HEALTH EDUCATION & PRIMARY CARE
+// ============================================================
+function renderHealthEdu() {
+  return `
+    <div class="page-header">
+      <div class="page-title">📚 Basic Health Education</div>
+      <div class="page-sub">Health awareness programs and seminars</div>
+    </div>
+    <div class="grid-2" style="gap:16px">
+      ${[
+        {icon:'🫀',title:'Cardiovascular Health',desc:'Blood pressure monitoring, heart disease prevention, healthy lifestyle.'},
+        {icon:'🍎',title:'Proper Nutrition',desc:'Balanced diet, malnutrition prevention, feeding programs.'},
+        {icon:'🦷',title:'Oral Hygiene',desc:'Proper brushing, dental care, fluoride treatment programs.'},
+        {icon:'🧼',title:'Sanitation & Hygiene',desc:'Handwashing, personal hygiene, safe water practices.'},
+        {icon:'🧘',title:'Mental Health Awareness',desc:'Stress management, community support, referral systems.'},
+        {icon:'🚭',title:'Substance Use Prevention',desc:'Anti-smoking, anti-drug, alcohol awareness programs.'}
+      ].map(p=>`
+        <div class="card" style="display:flex;gap:14px;align-items:flex-start">
+          <div style="font-size:2rem;flex-shrink:0">${p.icon}</div>
+          <div>
+            <div style="font-weight:600;margin-bottom:4px">${p.title}</div>
+            <div style="color:var(--text2);font-size:.85rem">${p.desc}</div>
+            <button class="btn btn-ghost btn-sm" style="margin-top:10px">📋 Log Session</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderPrimaryCare() {
+  return `
+    <div class="page-header">
+      <div class="page-title">🩺 Primary Healthcare</div>
+      <div class="page-sub">Community-based primary healthcare services</div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card green"><div class="stat-icon">🏥</div><div class="stat-value">${demoData.healthRecords?.length||0}</div><div class="stat-label">Consultations</div></div>
+      <div class="stat-card blue"><div class="stat-icon">💉</div><div class="stat-value">${demoData.vaccines?.length||0}</div><div class="stat-label">Vaccinations</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">🤱</div><div class="stat-value">${demoData.maternal?.length||0}</div><div class="stat-label">Maternal Visits</div></div>
+      <div class="stat-card purple"><div class="stat-icon">👶</div><div class="stat-value">${demoData.residents.filter(r=>calcAge(r.birthdate)<=5).length}</div><div class="stat-label">Under 5 Children</div></div>
+    </div>
+    <div class="grid-2" style="gap:16px;margin-top:4px">
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:14px">🩺 Services Available</div>
+        ${['Blood Pressure Monitoring','Blood Sugar Testing','First Aid Treatment','Wound Care','Prenatal Checkup','Nutrition Assessment','Referral Services','TB-DOTS Program'].map(s=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.88rem">
+            <span style="color:var(--accent)">✓</span> ${s}
+          </div>
+        `).join('')}
+      </div>
+      <div class="card">
+        <div style="font-weight:600;margin-bottom:14px">📊 Age Distribution</div>
+        ${[
+          {label:'0–5 years (Infants/Toddlers)',filter:r=>calcAge(r.birthdate)<=5},
+          {label:'6–12 years (Children)',filter:r=>{const a=calcAge(r.birthdate);return a>=6&&a<=12;}},
+          {label:'13–17 years (Adolescents)',filter:r=>{const a=calcAge(r.birthdate);return a>=13&&a<=17;}},
+          {label:'18–59 years (Adults)',filter:r=>{const a=calcAge(r.birthdate);return a>=18&&a<=59;}},
+          {label:'60+ years (Senior Citizens)',filter:r=>calcAge(r.birthdate)>=60}
+        ].map(g=>{
+          const count=demoData.residents.filter(g.filter).length;
+          const pct=demoData.residents.length?Math.round(count/demoData.residents.length*100):0;
+          return `<div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:.83rem;margin-bottom:4px">
+              <span>${g.label}</span><span><strong>${count}</strong></span>
+            </div>
+            <div style="height:6px;background:var(--surface2);border-radius:3px">
+              <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:3px"></div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// PUBLIC FORM SUBMISSION
+// ============================================================
+function submitPublicRequest() {
+  loadDemoData();
+  const fn=v('pub-fname'),ln=v('pub-lname'),bday=v('pub-bday'),gender=v('pub-gender'),addr=v('pub-address'),reqtype=v('pub-reqtype'),purpose=v('pub-purpose');
+  const errEl=document.getElementById('pub-error');
+  errEl.style.display='none';
+  
+  if(!fn||!ln||!bday||!gender||!addr||!reqtype||!purpose){
+    errEl.textContent='Please fill all required fields.';errEl.style.display='flex';return;
+  }
+  
+  const req = {
+    id:genId('REQ'),name:`${fn} ${ln}`,birthday:bday,gender,address:addr,
+    contact:v('pub-contact'),reqType:reqtype,purpose,status:'Pending',
+    submittedAt:new Date().toISOString()
+  };
+  
+  demoData.requests.push(req);
+  saveDemoData();
+  
+  // Clear form
+  ['pub-fname','pub-lname','pub-bday','pub-gender','pub-address','pub-contact','pub-reqtype','pub-purpose'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.value='';}
+  });
+  
+  document.getElementById('pub-success').style.display='flex';
+  setTimeout(()=>document.getElementById('pub-success').style.display='none',5000);
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(title, body, buttons=[]) {
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=body;
+  document.getElementById('modal-footer').innerHTML=buttons.map(b=>
+    `<button class="btn ${b.cls}" onclick="${b.action}">${b.label}</button>`
+  ).join('');
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal() { document.getElementById('modal').style.display='none'; }
+
+// Value helper
+function v(id) {
+  const el=document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Show splash by default
+  document.getElementById('splash').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('public-page').style.display='none';
+  loadDemoData();
+});
+</script>
+</body>
+</html>
