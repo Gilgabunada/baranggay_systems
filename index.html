@@ -68,7 +68,7 @@
   .stat-card.yellow::before{background:var(--yellow);}
   .stat-card.red::before{background:var(--red);}
   .stat-card.purple::before{background:var(--purple);}
-  .stat-icon{font-size:1.45rem;margin-bottom:9px;}
+  .stat-icon{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:7px;}
   .stat-value{font-family:'DM Serif Display',serif;font-size:1.95rem;line-height:1;margin-bottom:3px;}
   .stat-label{font-size:.74rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
   .table-wrap{overflow-x:auto;}
@@ -106,7 +106,7 @@
   .public-top p{color:var(--text2);max-width:560px;margin:0 auto;}
   .public-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px;}
   .pub-info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;text-align:center;}
-  .pub-info-card .pic{font-size:2rem;margin-bottom:8px;}
+  .pub-info-card .pic{margin-bottom:10px;display:flex;align-items:center;justify-content:center;}
   .pub-info-card .ttl{font-weight:600;font-size:.9rem;margin-bottom:4px;}
   .pub-info-card .dsc{font-size:.77rem;color:var(--text2);line-height:1.5;}
   .public-form-wrap{max-width:820px;margin:0 auto;}
@@ -123,10 +123,12 @@
   .info-row:last-child{border-bottom:none;}
   .info-label{color:var(--text2);}
   .info-value{font-weight:500;text-align:right;}
-  .search-bar{display:flex;gap:8px;margin-bottom:15px;flex-wrap:wrap;align-items:center;}
-  .search-input-wrap{position:relative;flex:1;min-width:200px;}
-  .search-input-wrap input{padding-left:34px;}
-  .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.82rem;}
+  .search-bar{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+  .search-input-wrap{position:relative;flex:1;min-width:220px;max-width:400px;}
+  .search-input-wrap input{width:100%;padding:10px 14px 10px 38px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+  .search-input-wrap input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+  .search-input-wrap input::placeholder{color:var(--text3);}
+  .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.9rem;pointer-events:none;line-height:1;}
   .cert-preview{background:#fff;color:#1a1a1a;padding:36px;border-radius:8px;}
   .cert-preview h2{text-align:center;font-size:1.35rem;margin-bottom:3px;font-family:'DM Serif Display',serif;}
   .cert-preview .cert-sub{text-align:center;font-size:.86rem;margin-bottom:16px;font-family:'DM Sans',sans-serif;}
@@ -142,17 +144,25 @@
 <div id="public-page">
   <div class="public-header">
     <div style="display:flex;align-items:center;gap:11px">
-      <div class="logo-icon" style="width:42px;height:42px;font-size:20px">🏛️</div>
+      <div class="logo-icon" style="width:42px;height:42px"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M8 9V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="14.5" x2="15" y2="14.5"/></svg></div>
       <div>
         <div style="font-family:'DM Serif Display',serif;font-size:1.1rem">Barangay Portal</div>
         <div style="font-size:.67rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px">Citizen Request System</div>
       </div>
     </div>
-    <button class="btn btn-primary btn-sm" onclick="showSplash()" style="gap:7px;padding:9px 18px;font-size:.85rem">🔐 Official Login</button>
+    <button class="btn btn-primary btn-sm" onclick="showSplash()" style="gap:8px;padding:10px 20px;font-size:.86rem;font-weight:600">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Official Login
+    </button>
   </div>
   <div class="public-hero">
     <div class="public-top">
-      <div style="font-size:3.2rem;margin-bottom:14px">🏘️</div>
+      <div style="margin-bottom:16px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2ea87e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
       <h1>Welcome, Residents!</h1>
       <p>Submit requests for barangay documents, register as a resident, or request removal of your records — all online.</p>
     </div>
@@ -160,17 +170,23 @@
     <!-- Info cards -->
     <div class="public-cards">
       <div class="pub-info-card">
-        <div class="pic">📋</div>
+        <div class="pic">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2ea87e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
         <div class="ttl">Document Requests</div>
         <div class="dsc">Request certificates, clearances, and other official barangay documents.</div>
       </div>
       <div class="pub-info-card">
-        <div class="pic">🏠</div>
+        <div class="pic">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4a9eff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
         <div class="ttl">Register as Resident</div>
         <div class="dsc">Fill up your complete profile to be officially registered in the barangay records.</div>
       </div>
       <div class="pub-info-card">
-        <div class="pic">🚪</div>
+        <div class="pic">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e05c5c" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </div>
         <div class="ttl">Leave / Remove Records</div>
         <div class="dsc">Officially notify the barangay that you are leaving or request removal of your data.</div>
       </div>
@@ -178,28 +194,28 @@
 
     <div class="public-form-wrap">
       <div class="card">
-        <div id="pub-success" class="alert alert-success" style="display:none">✅ Request submitted! The Barangay Assistant will review and process it soon.</div>
+        <div id="pub-success" class="alert alert-success" style="display:none">Request submitted! The Barangay Secretary will review and process it soon.</div>
         <div id="pub-error" class="alert alert-error" style="display:none"></div>
 
-        <div style="font-weight:700;font-size:1.05rem;margin-bottom:16px">📋 Submit a Request</div>
+        <div style="font-weight:700;font-size:1.05rem;margin-bottom:16px">Submit a Request</div>
 
         <!-- Request Type first so extra fields can show/hide -->
         <div class="form-group">
           <label>Request Type *</label>
           <select id="pub-reqtype" onchange="handleReqTypeChange()">
             <option value="">— Select what you need —</option>
-            <optgroup label="📄 Document Requests">
+            <optgroup label="Document Requests">
               <option value="Barangay Certificate">Barangay Certificate</option>
               <option value="Barangay Clearance">Barangay Clearance</option>
               <option value="Indigency Certificate">Indigency Certificate</option>
               <option value="Business Clearance">Business Clearance</option>
             </optgroup>
-            <optgroup label="🏠 Residency">
+            <optgroup label="Residency">
               <option value="Register as Resident">Register as Resident</option>
               <option value="Request to Leave Barangay">Request to Leave Barangay</option>
               <option value="Request Data Removal">Request Data Removal</option>
             </optgroup>
-            <optgroup label="💬 Others">
+            <optgroup label="Others">
               <option value="Suggestion/Complaint">Suggestion / Complaint</option>
               <option value="Other">Other</option>
             </optgroup>
@@ -215,7 +231,175 @@
           <div class="form-group"><label>Last Name *</label><input type="text" id="pub-lname" placeholder="dela Cruz"></div>
         </div>
         <div class="grid-2">
-          <div class="form-group"><label>Birthday *</label><input type="date" id="pub-bday"></div>
+          <div class="form-group">
+            <label>Birthday *</label>
+            <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
+              <select id="pub-bday-dd" style="width:100%;padding:11px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none" onchange="syncPubBday()">
+                <option value="">Day</option>
+                <option value="01">1</option>
+                <option value="02">2</option>
+                <option value="03">3</option>
+                <option value="04">4</option>
+                <option value="05">5</option>
+                <option value="06">6</option>
+                <option value="07">7</option>
+                <option value="08">8</option>
+                <option value="09">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18">18</option>
+                <option value="19">19</option>
+                <option value="20">20</option>
+                <option value="21">21</option>
+                <option value="22">22</option>
+                <option value="23">23</option>
+                <option value="24">24</option>
+                <option value="25">25</option>
+                <option value="26">26</option>
+                <option value="27">27</option>
+                <option value="28">28</option>
+                <option value="29">29</option>
+                <option value="30">30</option>
+                <option value="31">31</option>
+              </select>
+              <select id="pub-bday-mm" style="width:100%;padding:11px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none" onchange="syncPubBday()">
+                <option value="">Month</option>
+                <option value="01">January</option>
+                <option value="02">February</option>
+                <option value="03">March</option>
+                <option value="04">April</option>
+                <option value="05">May</option>
+                <option value="06">June</option>
+                <option value="07">July</option>
+                <option value="08">August</option>
+                <option value="09">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+              <select id="pub-bday-yy" style="width:100%;padding:11px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none" onchange="syncPubBday()">
+                <option value="">Year</option>
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="2020">2020</option>
+                <option value="2019">2019</option>
+                <option value="2018">2018</option>
+                <option value="2017">2017</option>
+                <option value="2016">2016</option>
+                <option value="2015">2015</option>
+                <option value="2014">2014</option>
+                <option value="2013">2013</option>
+                <option value="2012">2012</option>
+                <option value="2011">2011</option>
+                <option value="2010">2010</option>
+                <option value="2009">2009</option>
+                <option value="2008">2008</option>
+                <option value="2007">2007</option>
+                <option value="2006">2006</option>
+                <option value="2005">2005</option>
+                <option value="2004">2004</option>
+                <option value="2003">2003</option>
+                <option value="2002">2002</option>
+                <option value="2001">2001</option>
+                <option value="2000">2000</option>
+                <option value="1999">1999</option>
+                <option value="1998">1998</option>
+                <option value="1997">1997</option>
+                <option value="1996">1996</option>
+                <option value="1995">1995</option>
+                <option value="1994">1994</option>
+                <option value="1993">1993</option>
+                <option value="1992">1992</option>
+                <option value="1991">1991</option>
+                <option value="1990">1990</option>
+                <option value="1989">1989</option>
+                <option value="1988">1988</option>
+                <option value="1987">1987</option>
+                <option value="1986">1986</option>
+                <option value="1985">1985</option>
+                <option value="1984">1984</option>
+                <option value="1983">1983</option>
+                <option value="1982">1982</option>
+                <option value="1981">1981</option>
+                <option value="1980">1980</option>
+                <option value="1979">1979</option>
+                <option value="1978">1978</option>
+                <option value="1977">1977</option>
+                <option value="1976">1976</option>
+                <option value="1975">1975</option>
+                <option value="1974">1974</option>
+                <option value="1973">1973</option>
+                <option value="1972">1972</option>
+                <option value="1971">1971</option>
+                <option value="1970">1970</option>
+                <option value="1969">1969</option>
+                <option value="1968">1968</option>
+                <option value="1967">1967</option>
+                <option value="1966">1966</option>
+                <option value="1965">1965</option>
+                <option value="1964">1964</option>
+                <option value="1963">1963</option>
+                <option value="1962">1962</option>
+                <option value="1961">1961</option>
+                <option value="1960">1960</option>
+                <option value="1959">1959</option>
+                <option value="1958">1958</option>
+                <option value="1957">1957</option>
+                <option value="1956">1956</option>
+                <option value="1955">1955</option>
+                <option value="1954">1954</option>
+                <option value="1953">1953</option>
+                <option value="1952">1952</option>
+                <option value="1951">1951</option>
+                <option value="1950">1950</option>
+                <option value="1949">1949</option>
+                <option value="1948">1948</option>
+                <option value="1947">1947</option>
+                <option value="1946">1946</option>
+                <option value="1945">1945</option>
+                <option value="1944">1944</option>
+                <option value="1943">1943</option>
+                <option value="1942">1942</option>
+                <option value="1941">1941</option>
+                <option value="1940">1940</option>
+                <option value="1939">1939</option>
+                <option value="1938">1938</option>
+                <option value="1937">1937</option>
+                <option value="1936">1936</option>
+                <option value="1935">1935</option>
+                <option value="1934">1934</option>
+                <option value="1933">1933</option>
+                <option value="1932">1932</option>
+                <option value="1931">1931</option>
+                <option value="1930">1930</option>
+                <option value="1929">1929</option>
+                <option value="1928">1928</option>
+                <option value="1927">1927</option>
+                <option value="1926">1926</option>
+                <option value="1925">1925</option>
+                <option value="1924">1924</option>
+                <option value="1923">1923</option>
+                <option value="1922">1922</option>
+                <option value="1921">1921</option>
+                <option value="1920">1920</option>
+                <option value="1919">1919</option>
+                <option value="1918">1918</option>
+                <option value="1917">1917</option>
+                <option value="1916">1916</option>
+              </select>
+            </div>
+            <input type="hidden" id="pub-bday">
+          </div>
           <div class="form-group"><label>Gender *</label>
             <select id="pub-gender"><option value="">Select…</option><option>Male</option><option>Female</option><option>Other</option></select>
           </div>
@@ -226,7 +410,7 @@
         <!-- EXTRA: Register as Resident -->
         <div id="extra-register" class="extra-fields">
           <div class="section-divider"></div>
-          <div style="font-weight:600;font-size:.88rem;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">🏠 Registration Details</div>
+          <div style="font-weight:600;font-size:.88rem;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Registration Details</div>
           <div class="grid-2">
             <div class="form-group"><label>Middle Name</label><input type="text" id="pub-mname" placeholder="Optional"></div>
             <div class="form-group"><label>Civil Status</label>
@@ -237,13 +421,13 @@
             <div class="form-group"><label>Religion</label><input type="text" id="pub-religion" placeholder="e.g. Catholic"></div>
             <div class="form-group"><label>Household ID <span style="color:var(--text3);font-weight:400">(if known)</span></label><input type="text" id="pub-household" placeholder="e.g. HH001"></div>
           </div>
-          <div class="alert alert-info" style="margin-top:4px;margin-bottom:0">ℹ️ The Barangay Assistant will review your registration and add you to the official registry upon approval.</div>
+          <div class="alert alert-info" style="margin-top:4px;margin-bottom:0">The Barangay Secretary will review your registration and add you to the official registry upon approval.</div>
         </div>
 
         <!-- EXTRA: Leave / Remove -->
         <div id="extra-leave" class="extra-fields">
           <div class="section-divider"></div>
-          <div style="font-weight:600;font-size:.88rem;color:var(--red);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">🚪 Departure / Removal Details</div>
+          <div style="font-weight:600;font-size:.88rem;color:var(--red);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Departure / Removal Details</div>
           <div class="form-group"><label>Reason for Leaving / Removal *</label>
             <select id="pub-leave-reason">
               <option value="">Select reason…</option>
@@ -258,7 +442,7 @@
           <div class="form-group"><label>New Address <span style="color:var(--text3);font-weight:400">(if moving)</span></label>
             <input type="text" id="pub-new-address" placeholder="Where are you moving to?">
           </div>
-          <div class="alert alert-error" style="margin-top:4px;margin-bottom:0;background:rgba(224,92,92,.06)">⚠️ This request will be reviewed by the Barangay Assistant. Your records will only be removed after official approval.</div>
+          <div class="alert alert-error" style="margin-top:4px;margin-bottom:0;background:rgba(224,92,92,.06)">This request will be reviewed by the Barangay Secretary. Your records will only be removed after official approval.</div>
         </div>
 
         <!-- Purpose field (for non-registration types) -->
@@ -269,7 +453,7 @@
           </div>
         </div>
 
-        <button class="btn btn-primary btn-block" id="pub-btn" onclick="submitPublicRequest()" style="margin-top:4px;padding:13px;">📤 Submit Request</button>
+        <button class="btn btn-primary btn-block" id="pub-btn" onclick="submitPublicRequest()" style="margin-top:4px;padding:13px;">Submit Request</button>
       </div>
       <div style="margin-top:14px;text-align:center;color:var(--text3);font-size:.78rem">Processing takes 1–3 business days. You may be contacted for follow-up. Visit the barangay hall to claim documents.</div>
     </div>
@@ -277,36 +461,41 @@
 </div>
 
 <!-- LOGIN MODAL OVERLAY -->
-<div id="login-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center;backdrop-filter:blur(5px)" onclick="if(event.target===this)hideLogin()">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:420px;margin:20px;box-shadow:var(--shadow);overflow:hidden">
-    <!-- Modal header -->
-    <div style="padding:20px 24px 0;display:flex;justify-content:space-between;align-items:flex-start">
-      <div>
-        <div style="display:flex;align-items:center;gap:11px;margin-bottom:4px">
-          <div class="logo-icon" style="width:38px;height:38px;font-size:17px">🏛️</div>
-          <div>
-            <div style="font-family:'DM Serif Display',serif;font-size:1.15rem;line-height:1.2">Official Login</div>
-            <div style="font-size:.68rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px">Barangay Officials Only</div>
-          </div>
-        </div>
+<div id="login-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:9999" onclick="if(event.target===this)hideLogin()">
+  <div style="display:flex;align-items:center;justify-content:center;min-height:100%;padding:20px"><div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.6);overflow:hidden">
+
+    <!-- Colored top bar -->
+    <div style="background:linear-gradient(135deg,var(--accent),var(--accent2));padding:28px 24px 22px;text-align:center;position:relative">
+      <!-- Close X -->
+      <button onclick="hideLogin()" style="position:absolute;top:12px;right:14px;background:rgba(255,255,255,.15);border:none;color:white;cursor:pointer;width:28px;height:28px;border-radius:50%;font-size:.9rem;display:flex;align-items:center;justify-content:center;line-height:1">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <!-- Lock icon -->
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
-      <button onclick="hideLogin()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:1.3rem;padding:0;line-height:1;margin-top:2px">✕</button>
+      <div style="font-family:'DM Serif Display',serif;font-size:1.3rem;color:white;line-height:1.2">Official Login</div>
+      <div style="font-size:.72rem;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px">Barangay Officials Only</div>
     </div>
-    <!-- Modal body -->
-    <div style="padding:20px 24px 24px">
+
+    <!-- Form body -->
+    <div style="padding:24px">
       <div id="login-error" class="alert alert-error" style="display:none"></div>
       <div class="form-group">
         <label>Email Address</label>
-        <input type="email" id="login-email" placeholder="official@brgy.gov.ph" onkeypress="if(event.key==='Enter')doLogin()">
+        <input type="email" id="login-email" placeholder="official@brgy.gov.ph" onkeypress="if(event.key==='Enter')doLogin()" autocomplete="email">
       </div>
-      <div class="form-group" style="margin-bottom:20px">
+      <div class="form-group" style="margin-bottom:22px">
         <label>Password</label>
-        <input type="password" id="login-pass" placeholder="••••••••" onkeypress="if(event.key==='Enter')doLogin()">
+        <input type="password" id="login-pass" placeholder="••••••••" onkeypress="if(event.key==='Enter')doLogin()" autocomplete="current-password">
       </div>
-      <button class="btn btn-primary btn-block" onclick="doLogin()" id="login-btn" style="padding:12px">🔐 Sign In</button>
-      <div style="margin-top:14px;text-align:center;font-size:.78rem;color:var(--text3)">This portal is for authorized Barangay Officials only.</div>
+      <button class="btn btn-primary btn-block" onclick="doLogin()" id="login-btn" style="padding:13px;font-size:.92rem;gap:8px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Sign In
+      </button>
+      <div style="margin-top:14px;text-align:center;font-size:.77rem;color:var(--text3)">This portal is for authorized Barangay Officials only.</div>
     </div>
-  </div>
+  </div></div>
 </div>
 
 <!-- MAIN APP -->
@@ -314,7 +503,7 @@
   <div class="layout">
     <div class="sidebar">
       <div class="sidebar-logo">
-        <div class="logo-icon">🏛️</div>
+        <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M8 9V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="14.5" x2="15" y2="14.5"/></svg></div>
         <div><div class="logo-text">BIMS</div><div class="logo-sub">Barangay System</div></div>
       </div>
       <nav class="sidebar-nav" id="main-nav"></nav>
@@ -415,7 +604,7 @@ function loading() { eid('main-content').innerHTML='<div class="empty-state"><sp
 // ════════════════════════════════════════════════
 // PAGE VISIBILITY
 // ════════════════════════════════════════════════
-function showSplash() { eid('login-modal').style.display='flex'; }
+function showSplash() { eid('login-modal').style.display='block'; }
 function hideLogin()  { eid('login-modal').style.display='none'; }
 function showPublic() { eid('public-page').style.display='block'; eid('login-modal').style.display='none'; eid('app').style.display='none'; }
 function showApp()    { eid('public-page').style.display='none'; eid('login-modal').style.display='none'; eid('app').style.display='block'; }
@@ -430,7 +619,7 @@ async function doLogin() {
   if (!email||!pass) { setErr('login-error','Enter email and password.'); return; }
 
   const btn = eid('login-btn');
-  btn.innerHTML = '<span class="spinner"></span> Signing in…'; btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Signing in...'; btn.disabled = true;
 
   try {
     // Step 1 — Firebase Authentication
@@ -445,7 +634,7 @@ async function doLogin() {
   } catch(e) {
     setErr('login-error', e.message);
   }
-  btn.innerHTML = '🔐 Sign In'; btn.disabled = false;
+  btn.innerHTML = 'Sign In'; btn.disabled = false;
 }
 
 function doLogout() {
@@ -488,7 +677,7 @@ function initApp() {
   showApp();
   eid('user-avatar').textContent = (currentUser.name||'?')[0].toUpperCase();
   eid('user-name-display').textContent = currentUser.name || currentUser.email;
-  eid('user-role-display').textContent = { captain:'Barangay Captain', assistant:'Barangay Assistant', health:'Healthcare Dept.' }[currentUser.role] || currentUser.role;
+  eid('user-role-display').textContent = { captain:'Barangay Captain', secretary:'Barangay Secretary', health:'Healthcare Dept.' }[currentUser.role] || currentUser.role;
   buildNav();
   navigateTo('dashboard');
 }
@@ -497,34 +686,34 @@ function initApp() {
 // NAVIGATION
 // ════════════════════════════════════════════════
 const NAV = {
-  captain:   [{ id:'dashboard', icon:'📊', label:'Dashboard' }],
-  assistant: [
-    { id:'dashboard', icon:'📊', label:'Dashboard' },
+  captain:   [{ id:'dashboard', icon:'◈', label:'Dashboard' }],
+  secretary: [
+    { id:'dashboard', icon:'◈', label:'Dashboard' },
     { section:'Residents' },
-    { id:'residents', icon:'👥', label:'Residents List' },
-    { id:'households', icon:'🏠', label:'Households' },
+    { id:'residents', icon:'⊞', label:'Residents List' },
+    { id:'households', icon:'⌂', label:'Households' },
     { section:'Documents' },
-    { id:'certificates', icon:'📜', label:'Brgy. Certificates' },
-    { id:'clearances', icon:'✅', label:'Brgy. Clearances' },
+    { id:'certificates', icon:'⊡', label:'Brgy. Certificates' },
+    { id:'clearances', icon:'◉', label:'Brgy. Clearances' },
     { section:'Cases' },
-    { id:'blotters', icon:'📋', label:'Blotter Records' },
-    { id:'summons', icon:'📨', label:'Summons' },
+    { id:'blotters', icon:'≡', label:'Blotter Records' },
+    { id:'summons', icon:'✉', label:'Summons' },
     { section:'Requests' },
-    { id:'requests', icon:'📥', label:'Resident Requests', badge:true }
+    { id:'requests', icon:'↓', label:'Resident Requests', badge:true }
   ],
   health: [
-    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { id:'dashboard', icon:'◈', label:'Dashboard' },
     { section:'Healthcare' },
-    { id:'health-records', icon:'🏥', label:'Health Records' },
-    { id:'vaccines', icon:'💉', label:'Vaccination' },
-    { id:'maternal', icon:'🤱', label:'Maternal & Child' },
-    { id:'health-edu', icon:'📚', label:'Health Education' },
-    { id:'primary-care', icon:'🩺', label:'Primary Healthcare' }
+    { id:'health-records', icon:'✚', label:'Health Records' },
+    { id:'vaccines', icon:'◎', label:'Vaccination' },
+    { id:'maternal', icon:'♡', label:'Maternal & Child' },
+    { id:'health-edu', icon:'☰', label:'Health Education' },
+    { id:'primary-care', icon:'⊕', label:'Primary Healthcare' }
   ]
 };
 
 function buildNav() {
-  const items = NAV[currentUser.role] || NAV.assistant;
+  const items = NAV[currentUser.role] || NAV.secretary;
   eid('main-nav').innerHTML = items.map(i => {
     if (i.section) return `<div class="nav-section-label">${i.section}</div>`;
     const b = i.badge ? `<span class="notif-dot" id="badge-${i.id}" style="display:none"></span>` : '';
@@ -544,7 +733,7 @@ function navigateTo(page) {
   const n = eid(`nav-${page}`); if (n) n.classList.add('active');
   loading();
   if (PAGES[page]) PAGES[page]();
-  else eid('main-content').innerHTML = '<div class="empty-state"><div class="emoji">🚧</div>Coming soon</div>';
+  else eid('main-content').innerHTML = '<div class="empty-state"><div class="emoji">!<//div>Coming soon</div>';
 }
 
 // ════════════════════════════════════════════════
@@ -571,31 +760,31 @@ async function dashboard() {
 
   eid('main-content').innerHTML = `
     <div style="margin-bottom:22px">
-      <div class="page-title">📊 Dashboard</div>
+      <div class="page-title">Dashboard</div>
       <div class="page-sub">${new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
     </div>
     <div class="stats-grid">
-      <div class="stat-card green"><div class="stat-icon">👥</div><div class="stat-value">${res.length}</div><div class="stat-label">Residents</div></div>
-      <div class="stat-card blue"><div class="stat-icon">📜</div><div class="stat-value">${ct.length}</div><div class="stat-label">Certificates</div></div>
-      <div class="stat-card yellow"><div class="stat-icon">✅</div><div class="stat-value">${cl.length}</div><div class="stat-label">Clearances</div></div>
-      <div class="stat-card red"><div class="stat-icon">📋</div><div class="stat-value">${bl.length}</div><div class="stat-label">Blotters</div></div>
-      <div class="stat-card purple"><div class="stat-icon">📨</div><div class="stat-value">${su.length}</div><div class="stat-label">Summons</div></div>
-      <div class="stat-card yellow"><div class="stat-icon">📥</div><div class="stat-value">${pending}</div><div class="stat-label">Pending Requests</div></div>
+      <div class="stat-card green"><div class="stat-icon">People</div><div class="stat-value">${res.length}</div><div class="stat-label">Residents</div></div>
+      <div class="stat-card blue"><div class="stat-icon">Certs</div><div class="stat-value">${ct.length}</div><div class="stat-label">Certificates</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">Clear.</div><div class="stat-value">${cl.length}</div><div class="stat-label">Clearances</div></div>
+      <div class="stat-card red"><div class="stat-icon">Blotter</div><div class="stat-value">${bl.length}</div><div class="stat-label">Blotters</div></div>
+      <div class="stat-card purple"><div class="stat-icon">Summons</div><div class="stat-value">${su.length}</div><div class="stat-label">Summons</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">Requests</div><div class="stat-value">${pending}</div><div class="stat-label">Pending Requests</div></div>
     </div>
     <div class="grid-2" style="gap:16px">
       <div class="card">
-        <div style="font-weight:600;margin-bottom:13px">👥 Population Overview</div>
-        <div class="info-row"><span class="info-label">👨 Male</span><span class="info-value">${males}</span></div>
-        <div class="info-row"><span class="info-label">👩 Female</span><span class="info-value">${females}</span></div>
-        <div class="info-row"><span class="info-label">🏠 Households</span><span class="info-value">${hh}</span></div>
-        <div class="info-row"><span class="info-label">📋 Pending Blotters</span><span class="info-value"><span class="badge badge-red">${pendBl}</span></span></div>
-        <div class="info-row"><span class="info-label">📨 Pending Summons</span><span class="info-value"><span class="badge badge-yellow">${pendSu}</span></span></div>
-        <div class="info-row"><span class="info-label">💉 Vaccinations</span><span class="info-value">${vc.length}</span></div>
-        <div class="info-row"><span class="info-label">🤱 Maternal Visits</span><span class="info-value">${mt.length}</span></div>
-        <div class="info-row"><span class="info-label">🏥 Consultations</span><span class="info-value">${hr.length}</span></div>
+        <div style="font-weight:600;margin-bottom:13px">Population Overview</div>
+        <div class="info-row"><span class="info-label">Male</span><span class="info-value">${males}</span></div>
+        <div class="info-row"><span class="info-label">Female</span><span class="info-value">${females}</span></div>
+        <div class="info-row"><span class="info-label">Households</span><span class="info-value">${hh}</span></div>
+        <div class="info-row"><span class="info-label">Pending Blotters</span><span class="info-value"><span class="badge badge-red">${pendBl}</span></span></div>
+        <div class="info-row"><span class="info-label">Pending Summons</span><span class="info-value"><span class="badge badge-yellow">${pendSu}</span></span></div>
+        <div class="info-row"><span class="info-label">Vaccinations</span><span class="info-value">${vc.length}</span></div>
+        <div class="info-row"><span class="info-label">Maternal Visits</span><span class="info-value">${mt.length}</span></div>
+        <div class="info-row"><span class="info-label">Consultations</span><span class="info-value">${hr.length}</span></div>
       </div>
       <div class="card">
-        <div style="font-weight:600;margin-bottom:13px">📄 Recent Documents</div>
+        <div style="font-weight:600;margin-bottom:13px">Recent Documents</div>
         ${recentDocs.length ? recentDocs.map(d=>`
           <div class="info-row">
             <span class="info-label" style="font-size:.81rem">${d.residentName||'—'}</span>
@@ -617,14 +806,25 @@ async function residents() {
 
   eid('main-content').innerHTML = `
     <div class="page-header-row">
-      <div><div class="page-title">👥 Residents Registry</div><div class="page-sub">${filtered.length} resident(s)</div></div>
-      <button class="btn btn-primary" onclick="openAddResident()">➕ Add Resident</button>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:42px;height:42px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div><div class="page-title">Residents Registry</div><div class="page-sub">${filtered.length} resident(s)</div></div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddResident()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Resident
+      </button>
     </div>
     <div class="search-bar">
-      <div class="search-input-wrap" style="max-width:310px">
-        <span class="search-icon">🔍</span>
-        <input type="text" placeholder="Search name or address…" value="${_cache._resSearch||''}" oninput="_cache._resSearch=this.value;residents()">
+      <div class="search-input-wrap">
+        <span class="search-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" placeholder="Search by name or address…" value="${_cache._resSearch||''}" oninput="_cache._resSearch=this.value;residents()">
       </div>
+      ${_cache._resSearch ? `<button class="btn btn-ghost btn-sm" onclick="_cache._resSearch='';residents()" style="white-space:nowrap">✕ Clear</button>` : ''}
     </div>
     <div class="card" style="padding:0"><div class="table-wrap"><table>
       <thead><tr><th>Name</th><th>Age</th><th>Gender</th><th>Civil Status</th><th>Household</th><th>Address</th><th>Actions</th></tr></thead>
@@ -636,14 +836,66 @@ async function residents() {
           <td>${r.civilStatus||'—'}</td>
           <td><span class="badge badge-gray">${r.householdId||'—'}</span></td>
           <td style="max-width:145px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.address||'—'}</td>
-          <td style="white-space:nowrap">
-            <button class="btn btn-ghost btn-sm" onclick="viewResident('${r.id}')">👁️</button>
-            <button class="btn btn-ghost btn-sm" onclick="openEditResident('${r.id}')">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteResident('${r.id}')">🗑️</button>
+          <td style="white-space:nowrap;display:flex;gap:4px;align-items:center;padding:8px 12px">
+            <button class="btn btn-ghost btn-sm" onclick="viewResident('${r.id}')" title="View Details" style="padding:5px 8px">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="openEditResident('${r.id}')" title="Edit" style="padding:5px 8px">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="deleteResident('${r.id}')" title="Delete" style="padding:5px 8px">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">👥</div>No residents found.</div></td></tr>`}
+        </tr>`).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">—</div>No residents found.</div></td></tr>`}
       </tbody>
     </table></div></div>`;
+}
+
+// ── BIRTHDAY DROPDOWN HELPERS ──
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function bdayHtml(prefix, val) {
+  const parts = (val||'').split('-');
+  const yy = parts[0]||'', mm = parts[1]||'', dd = parts[2]||'';
+  const curYear = new Date().getFullYear();
+  const years = Array.from({length:110}, function(_,i){ return curYear - i; });
+  const days   = Array.from({length:31}, function(_,i){ return String(i+1).padStart(2,'0'); });
+  const sel = 'width:100%;padding:11px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:.88rem;outline:none';
+
+  var dayOpts = '<option value="">Day</option>';
+  days.forEach(function(d){ dayOpts += '<option value="'+d+'"'+(d===dd?' selected':'')+'>'+parseInt(d)+'</option>'; });
+
+  var mmOpts = '<option value="">Month</option>';
+  MONTHS.forEach(function(m,i){ var v=String(i+1).padStart(2,'0'); mmOpts += '<option value="'+v+'"'+(v===mm?' selected':'')+'>'+m+'</option>'; });
+
+  var yyOpts = '<option value="">Year</option>';
+  years.forEach(function(y){ yyOpts += '<option value="'+y+'"'+(String(y)===yy?' selected':'')+'>'+y+'</option>'; });
+
+  return '<div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">'
+    + '<select id="'+prefix+'-dd" onchange="updateBday(\''+prefix+'\')" style="'+sel+'">'+dayOpts+'</select>'
+    + '<select id="'+prefix+'-mm" onchange="updateBday(\''+prefix+'\')" style="'+sel+'">'+mmOpts+'</select>'
+    + '<select id="'+prefix+'-yy" onchange="updateBday(\''+prefix+'\')" style="'+sel+'">'+yyOpts+'</select>'
+    + '</div>'
+    + '<input type="hidden" id="'+prefix+'" value="'+(val||'')+'">';
+}
+
+function updateBday(prefix) {
+  var dd = (eid(prefix+'-dd') && eid(prefix+'-dd').value) || '';
+  var mm = (eid(prefix+'-mm') && eid(prefix+'-mm').value) || '';
+  var yy = (eid(prefix+'-yy') && eid(prefix+'-yy').value) || '';
+  var hidden = eid(prefix);
+  if (dd && mm && yy && hidden) {
+    hidden.value = yy+'-'+mm+'-'+dd;
+    var pill = eid('age-pill');
+    if (pill) { pill.textContent = 'Age: ' + calcAge(hidden.value); pill.style.display = 'inline'; }
+  } else if (hidden) {
+    hidden.value = '';
+  }
+}
+
+function getBday(prefix) {
+  return eid(prefix)?.value || '';
 }
 
 function residentForm(d={}) {
@@ -656,7 +908,7 @@ function residentForm(d={}) {
       <div class="form-group"><label>Middle Name</label><input type="text" id="r-mname" value="${d.middleName||''}"></div>
       <div class="form-group">
         <label>Birthdate * <span id="age-pill" class="age-pill" ${d.birthdate?'':'style="display:none"'}>${d.birthdate?'Age: '+calcAge(d.birthdate):''}</span></label>
-        <input type="date" id="r-bday" value="${d.birthdate||''}" oninput="const p=eid('age-pill');p.textContent='Age: '+calcAge(this.value);p.style.display='inline';">
+        ${bdayHtml('r-bday', d.birthdate||'')}
       </div>
     </div>
     <div class="grid-2">
@@ -677,20 +929,20 @@ function residentForm(d={}) {
 }
 
 function openAddResident() {
-  openModal('➕ Add Resident', residentForm(), [
+  openModal('Add Resident', residentForm(), [
     { label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
-    { label:'💾 Save Resident', cls:'btn-primary', action:'saveResident()' }
+    { label:'Save Resident', cls:'btn-primary', action:'saveResident()' }
   ]);
 }
 function openEditResident(id) {
   const d = (_cache.residents||[]).find(r=>r.id===id)||{};
-  openModal('✏️ Edit Resident', residentForm(d), [
+  openModal('Edit Resident', residentForm(d), [
     { label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
-    { label:'💾 Update', cls:'btn-primary', action:`saveResident('${id}')` }
+    { label:'Update', cls:'btn-primary', action:`saveResident('${id}')` }
   ]);
 }
 async function saveResident(id=null) {
-  const fn=v('r-fname'),ln=v('r-lname'),bd=v('r-bday'),gn=v('r-gender'),addr=v('r-address');
+  const fn=v('r-fname'),ln=v('r-lname'),bd=getBday('r-bday'),gn=v('r-gender'),addr=v('r-address');
   if (!fn||!ln||!bd||!gn||!addr) { setErr('r-err','Please fill all required fields.'); return; }
   const data = { firstName:fn, lastName:ln, middleName:v('r-mname'), birthdate:bd, gender:gn,
     civilStatus:v('r-civil'), religion:v('r-religion'), householdId:v('r-household'), address:addr, contact:v('r-contact') };
@@ -705,7 +957,7 @@ async function viewResident(id) {
   if (!r) return;
   const [certs, clears] = await Promise.all([dbList('certificates'), dbList('clearances')]);
   const docs = [...certs.filter(d=>d.residentId===id), ...clears.filter(d=>d.residentId===id)];
-  openModal(`👤 ${r.firstName} ${r.lastName}`, `
+  openModal(`Resident: ${r.firstName} ${r.lastName}`, `
     <div class="info-row"><span class="info-label">Full Name</span><span class="info-value">${r.firstName} ${r.middleName||''} ${r.lastName}</span></div>
     <div class="info-row"><span class="info-label">Age</span><span class="info-value">${calcAge(r.birthdate)} years old</span></div>
     <div class="info-row"><span class="info-label">Birthdate</span><span class="info-value">${r.birthdate||'—'}</span></div>
@@ -715,7 +967,7 @@ async function viewResident(id) {
     <div class="info-row"><span class="info-label">Household ID</span><span class="info-value">${r.householdId||'—'}</span></div>
     <div class="info-row"><span class="info-label">Address</span><span class="info-value">${r.address||'—'}</span></div>
     <div class="info-row"><span class="info-label">Contact</span><span class="info-value">${r.contact||'—'}</span></div>
-    <div style="margin-top:13px;font-weight:600;margin-bottom:7px">📄 Documents (${docs.length})</div>
+    <div style="margin-top:13px;font-weight:600;margin-bottom:7px">Documents (${docs.length})</div>
     ${docs.length ? docs.map(d=>`<div class="info-row"><span class="info-label">${d.type||'—'}</span><span class="badge badge-green">${d.status||'—'}</span></div>`).join('') : '<div style="color:var(--text3);font-size:.83rem">No documents issued.</div>'}
   `, [{ label:'Close', cls:'btn-ghost', action:'closeModal()' }]);
 }
@@ -732,8 +984,8 @@ async function households() {
   const map = {};
   list.forEach(r => { const hid = r.householdId||'UNASSIGNED'; if(!map[hid])map[hid]=[]; map[hid].push(r); });
   eid('main-content').innerHTML = `
-    <div style="margin-bottom:20px"><div class="page-title">🏠 Household Groups</div><div class="page-sub">${Object.keys(map).length} household(s)</div></div>
-    ${!Object.keys(map).length ? '<div class="empty-state"><div class="emoji">🏠</div>No residents yet.</div>' :
+    <div style="margin-bottom:20px"><div class="page-title">Household Groups</div><div class="page-sub">${Object.keys(map).length} household(s)</div></div>
+    ${!Object.keys(map).length ? '<div class="empty-state"><div class="emoji">—</div>No residents yet.</div>' :
     `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px">
       ${Object.entries(map).map(([hid,members])=>`
         <div class="card">
@@ -757,15 +1009,15 @@ async function households() {
 // ════════════════════════════════════════════════
 // DOCUMENTS
 // ════════════════════════════════════════════════
-async function certificates() { await docPage('certificates','📜','Certificate'); }
-async function clearances()   { await docPage('clearances','✅','Clearance'); }
+async function certificates() { await docPage('certificates','','Certificate'); }
+async function clearances()   { await docPage('clearances','','Clearance'); }
 
 async function docPage(node, icon, label) {
   const items = (await dbList(node)).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   eid('main-content').innerHTML = `
     <div class="page-header-row">
       <div><div class="page-title">${icon} Barangay ${label}s</div><div class="page-sub">${items.length} record(s)</div></div>
-      <button class="btn btn-primary" onclick="openIssueDoc('${node}','${label}')">➕ Issue ${label}</button>
+      <button class="btn btn-primary" onclick="openIssueDoc('${node}','${label}')">Issue ${label}</button>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap"><table>
       <thead><tr><th>OR #</th><th>Resident</th><th>Purpose</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
@@ -777,8 +1029,8 @@ async function docPage(node, icon, label) {
           <td>${fmtDate(c.createdAt)}</td>
           <td><span class="badge ${c.status==='Released'?'badge-green':c.status==='Processing'?'badge-yellow':'badge-gray'}">${c.status||'—'}</span></td>
           <td style="white-space:nowrap">
-            <button class="btn btn-ghost btn-sm" onclick="printDoc('${node}','${c.id}')">🖨️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteDoc('${node}','${c.id}','${label}')">🗑️</button>
+            <button class="btn btn-ghost btn-sm" onclick="printDoc('${node}','${c.id}')">Print</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteDoc('${node}','${c.id}','${label}')">Delete</button>
           </td>
         </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="emoji">${icon}</div>No ${label.toLowerCase()}s issued yet.</div></td></tr>`}
       </tbody>
@@ -789,7 +1041,7 @@ async function openIssueDoc(node, label) {
   const res = await dbList('residents');
   res.sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||''));
   const opts = res.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName}</option>`).join('');
-  openModal(`➕ Issue Brgy. ${label}`, `
+  openModal(`Issue Brgy. ${label}`, `
     <div class="form-group"><label>Resident *</label><select id="doc-res"><option value="">Select resident…</option>${opts}</select></div>
     <div class="form-group"><label>Purpose *</label><input type="text" id="doc-purpose" placeholder="e.g. Employment, Scholarship…"></div>
     <div class="form-group"><label>OR Number</label><input type="text" id="doc-or" placeholder="OR-00000"></div>
@@ -797,7 +1049,7 @@ async function openIssueDoc(node, label) {
       <select id="doc-status"><option value="Processing">Processing</option><option value="Released">Released</option></select>
     </div>
     <div id="doc-err" class="alert alert-error" style="display:none"></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:`📜 Issue ${label}`,cls:'btn-primary',action:`saveDoc('${node}','${label}')` }]);
+  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:`Issue ${label}`,cls:'btn-primary',action:`saveDoc('${node}','${label}')` }]);
 }
 
 async function saveDoc(node, label) {
@@ -824,7 +1076,7 @@ async function printDoc(node, id) {
   const allRes = _cache.residents || await dbList('residents');
   const r = allRes.find(x=>x.id===item.residentId)||{};
   const today = new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
-  openModal(`🖨️ ${item.type}`, `
+  openModal(`Print: ${item.type}`, `
     <div class="cert-preview">
       <div style="text-align:center;font-size:.82rem;font-family:'DM Sans',sans-serif;margin-bottom:3px">Republic of the Philippines</div>
       <h2>${(item.type||'').toUpperCase()}</h2>
@@ -842,7 +1094,7 @@ async function printDoc(node, id) {
       </div>
       <div style="margin-top:12px;text-align:right;font-size:.72rem;font-family:'DM Sans',sans-serif;color:#888">OR No.: ${item.orNumber||'—'} | Issued by: ${item.issuedBy||'—'}</div>
     </div>`,
-  [{ label:'Close',cls:'btn-ghost',action:'closeModal()' },{ label:'🖨️ Print',cls:'btn-primary',action:'window.print()' }]);
+  [{ label:'Close',cls:'btn-ghost',action:'closeModal()' },{ label:'Print',cls:'btn-primary',action:'window.print()' }]);
 }
 
 // ════════════════════════════════════════════════
@@ -852,8 +1104,8 @@ async function blotters() {
   const items = (await dbList('blotters')).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   eid('main-content').innerHTML = `
     <div class="page-header-row">
-      <div><div class="page-title">📋 Blotter Records</div><div class="page-sub">${items.length} case(s)</div></div>
-      <button class="btn btn-primary" onclick="openAddBlotter()">➕ Record Blotter</button>
+      <div><div class="page-title">Blotter Records</div><div class="page-sub">${items.length} case(s)</div></div>
+      <button class="btn btn-primary" onclick="openAddBlotter()">Record Blotter</button>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap"><table>
       <thead><tr><th>Case ID</th><th>Complainant</th><th>Respondent</th><th>Incident</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
@@ -863,17 +1115,17 @@ async function blotters() {
           <td>${b.complainant||'—'}</td><td>${b.respondent||'—'}</td><td>${b.incident||'—'}</td><td>${b.incidentDate||'—'}</td>
           <td><span class="badge ${b.status==='Resolved'?'badge-green':b.status==='Pending'?'badge-red':'badge-yellow'}">${b.status||'—'}</span></td>
           <td style="white-space:nowrap">
-            <button class="btn btn-ghost btn-sm" onclick="viewBlotter('${b.id}')">👁️</button>
-            <button class="btn btn-ghost btn-sm" onclick="updateBlotterStatus('${b.id}','${b.status||''}')">🔄</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteBlotter('${b.id}')">🗑️</button>
+            <button class="btn btn-ghost btn-sm" onclick="viewBlotter('${b.id}')">View</button>
+            <button class="btn btn-ghost btn-sm" onclick="updateBlotterStatus('${b.id}','${b.status||''}')">Update</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteBlotter('${b.id}')">Delete</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">📋</div>No blotter records.</div></td></tr>`}
+        </tr>`).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">—</div>No blotter records.</div></td></tr>`}
       </tbody>
     </table></div></div>`;
 }
 
 function openAddBlotter() {
-  openModal('📋 Record Blotter Entry', `
+  openModal('Record Blotter Entry', `
     <div class="grid-2">
       <div class="form-group"><label>Complainant *</label><input type="text" id="bl-comp" placeholder="Full name"></div>
       <div class="form-group"><label>Respondent *</label><input type="text" id="bl-resp" placeholder="Full name"></div>
@@ -888,7 +1140,7 @@ function openAddBlotter() {
       <select id="bl-stat"><option>Pending</option><option>Under Investigation</option><option>Mediation</option><option>Resolved</option></select>
     </div>
     <div id="bl-err" class="alert alert-error" style="display:none"></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'📋 Save',cls:'btn-primary',action:'saveBlotter()' }]);
+  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'Save',cls:'btn-primary',action:'saveBlotter()' }]);
 }
 
 async function saveBlotter() {
@@ -902,7 +1154,7 @@ async function saveBlotter() {
 
 async function viewBlotter(id) {
   const b = await dbGet(`blotters/${id}`);
-  openModal('📋 Blotter Case', `
+  openModal('Blotter Case', `
     <div class="info-row"><span class="info-label">Complainant</span><span class="info-value">${b.complainant}</span></div>
     <div class="info-row"><span class="info-label">Respondent</span><span class="info-value">${b.respondent}</span></div>
     <div class="info-row"><span class="info-label">Incident</span><span class="info-value">${b.incident}</span></div>
@@ -917,12 +1169,12 @@ async function viewBlotter(id) {
 }
 
 function updateBlotterStatus(id, cur) {
-  openModal('🔄 Update Status', `
+  openModal('Update Status', `
     <div class="form-group"><label>New Status</label>
       <select id="bl-new-stat">${['Pending','Under Investigation','Mediation','For Hearing','Resolved','Referred to Police'].map(s=>`<option ${s===cur?'selected':''}>${s}</option>`).join('')}</select>
     </div>
     <div class="form-group"><label>Remarks</label><textarea id="bl-rem" placeholder="Update notes…"></textarea></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'✅ Update',cls:'btn-primary',action:`applyBlotterStatus('${id}')` }]);
+  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'Update',cls:'btn-primary',action:`applyBlotterStatus('${id}')` }]);
 }
 
 async function applyBlotterStatus(id) {
@@ -942,8 +1194,8 @@ async function summons() {
   const items = (await dbList('summons')).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   eid('main-content').innerHTML = `
     <div class="page-header-row">
-      <div><div class="page-title">📨 Summons</div><div class="page-sub">${items.length} issued</div></div>
-      <button class="btn btn-primary" onclick="openAddSummons()">➕ Issue Summons</button>
+      <div><div class="page-title">Summons</div><div class="page-sub">${items.length} issued</div></div>
+      <button class="btn btn-primary" onclick="openAddSummons()">Issue Summons</button>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap"><table>
       <thead><tr><th>Issued To</th><th>Reason</th><th>Appearance Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
@@ -955,16 +1207,16 @@ async function summons() {
           <td>${s.appearanceTime||'—'}</td>
           <td><span class="badge ${s.status==='Served'?'badge-green':s.status==='Pending'?'badge-yellow':'badge-red'}">${s.status||'—'}</span></td>
           <td style="white-space:nowrap">
-            ${s.status!=='Served'?`<button class="btn btn-primary btn-sm" onclick="markServed('${s.id}')">✅ Served</button>`:''}
-            <button class="btn btn-danger btn-sm" onclick="deleteSummon('${s.id}')">🗑️</button>
+            ${s.status!=='Served'?`<button class="btn btn-primary btn-sm" onclick="markServed('${s.id}')">Mark Served</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="deleteSummon('${s.id}')">Delete</button>
           </td>
-        </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="emoji">📨</div>No summons issued.</div></td></tr>`}
+        </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="emoji">—</div>No summons issued.</div></td></tr>`}
       </tbody>
     </table></div></div>`;
 }
 
 function openAddSummons() {
-  openModal('📨 Issue Summons', `
+  openModal('Issue Summons', `
     <div class="form-group"><label>Issue To *</label><input type="text" id="su-to" placeholder="Full name of person being summoned"></div>
     <div class="form-group"><label>Reason / Related Case *</label><input type="text" id="su-reason" placeholder="e.g. Blotter Case – Noise Complaint"></div>
     <div class="grid-2">
@@ -973,7 +1225,7 @@ function openAddSummons() {
     </div>
     <div class="form-group"><label>Notes / Instructions</label><textarea id="su-notes" placeholder="Additional instructions…"></textarea></div>
     <div id="su-err" class="alert alert-error" style="display:none"></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'📨 Issue',cls:'btn-primary',action:'saveSummons()' }]);
+  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'Issue',cls:'btn-primary',action:'saveSummons()' }]);
 }
 
 async function saveSummons() {
@@ -1005,10 +1257,10 @@ async function requests() {
 
   eid('main-content').innerHTML = `
     <div style="margin-bottom:${pending?'0':'20px'}">
-      <div class="page-title">📥 Resident Requests</div>
+      <div class="page-title">Resident Requests</div>
       <div class="page-sub">${pending} pending • ${items.length} total</div>
     </div>
-    ${pending ? `<div class="alert alert-info" style="margin-top:14px;margin-bottom:14px">📬 <strong>${pending}</strong> pending request(s) need processing.</div>` : ''}
+    ${pending ? `<div class="alert alert-info" style="margin-top:14px;margin-bottom:14px"><strong>${pending}</strong> pending request(s) need processing.</div>` : ''}
     <div class="card" style="padding:0"><div class="table-wrap"><table>
       <thead><tr><th>Name</th><th>Request Type</th><th>Address</th><th>Contact</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
       <tbody>
@@ -1016,7 +1268,7 @@ async function requests() {
           const isReg = r.subType==='registration';
           const isDep = r.subType==='departure'||r.subType==='removal';
           const typeBadge = isReg ? 'badge-green' : isDep ? 'badge-red' : 'badge-blue';
-          const typeIcon  = isReg ? '🏠' : isDep ? '🚪' : '📄';
+          const typeIcon  = isReg ? '[REG]' : isDep ? '[DEP]' : '[DOC]';
           const statusBadge = r.status==='Pending'?'badge-yellow':r.status==='Done'?'badge-green':r.status==='Rejected'?'badge-red':'badge-blue';
           return `<tr>
             <td><strong>${r.name||'—'}</strong></td>
@@ -1026,14 +1278,14 @@ async function requests() {
             <td>${fmtDate(r.createdAt)}</td>
             <td><span class="badge ${statusBadge}">${r.status||'—'}</span></td>
             <td style="white-space:nowrap">
-              <button class="btn btn-ghost btn-sm" onclick="viewRequest('${r.id}')">👁️</button>
+              <button class="btn btn-ghost btn-sm" onclick="viewRequest('${r.id}')">View</button>
               ${isReg&&r.status==='Pending' ? `<button class="btn btn-primary btn-sm" onclick="acceptRegistration('${r.id}')">✅ Register</button>` :
                 isDep&&r.status==='Pending' ? `<button class="btn btn-danger btn-sm" onclick="acceptDeparture('${r.id}')">✅ Remove</button>` :
                 r.status==='Pending' ? `<button class="btn btn-primary btn-sm" onclick="processRequest('${r.id}','${r.status||'Pending'}')">⚙️</button>` : ''}
-              <button class="btn btn-danger btn-sm" onclick="deleteRequest('${r.id}')">🗑️</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteRequest('${r.id}')">Delete</button>
             </td>
           </tr>`;
-        }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">📥</div>No requests yet.</div></td></tr>`}
+        }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">—</div>No requests yet.</div></td></tr>`}
       </tbody>
     </table></div></div>`;
 }
@@ -1048,7 +1300,7 @@ async function viewRequest(id) {
   if (isReg) {
     extraHtml = `
       <div style="margin-top:13px;padding:12px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.25);border-radius:8px">
-        <div style="font-size:.78rem;color:var(--accent);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🏠 Registration Details</div>
+        <div style="font-size:.78rem;color:var(--accent);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Registration Details</div>
         <div class="info-row"><span class="info-label">Middle Name</span><span class="info-value">${r.middleName||'—'}</span></div>
         <div class="info-row"><span class="info-label">Civil Status</span><span class="info-value">${r.civilStatus||'—'}</span></div>
         <div class="info-row"><span class="info-label">Religion</span><span class="info-value">${r.religion||'—'}</span></div>
@@ -1057,19 +1309,19 @@ async function viewRequest(id) {
   } else if (isDep) {
     extraHtml = `
       <div style="margin-top:13px;padding:12px;background:rgba(224,92,92,.07);border:1px solid rgba(224,92,92,.2);border-radius:8px">
-        <div style="font-size:.78rem;color:var(--red);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🚪 Departure / Removal Details</div>
+        <div style="font-size:.78rem;color:var(--red);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Departure / Removal Details</div>
         <div class="info-row"><span class="info-label">Reason</span><span class="info-value">${r.leaveReason||'—'}</span></div>
         <div class="info-row"><span class="info-label">New Address</span><span class="info-value">${r.newAddress||'—'}</span></div>
       </div>`;
   }
 
   const acceptBtn = isReg
-    ? `{ label:'✅ Accept & Register', cls:'btn-primary', action:\`acceptRegistration('\${id}')\` }`
+    ? `{ label:'Accept & Register', cls:'btn-primary', action:\`acceptRegistration('\${id}')\` }`
     : isDep
-    ? `{ label:'✅ Accept & Remove', cls:'btn-danger', action:\`acceptDeparture('\${id}')\` }`
-    : `{ label:'⚙️ Process', cls:'btn-primary', action:\`closeModal();processRequest('\${id}','\${r.status}')\` }`;
+    ? `{ label:'Accept & Remove', cls:'btn-danger', action:\`acceptDeparture('\${id}')\` }`
+    : `{ label:'Process', cls:'btn-primary', action:\`closeModal();processRequest('\${id}','\${r.status}')\` }`;
 
-  openModal('📋 Request Details', `
+  openModal('Request Details', `
     <div class="info-row"><span class="info-label">Name</span><span class="info-value"><strong>${r.name}</strong></span></div>
     <div class="info-row"><span class="info-label">Birthday</span><span class="info-value">${r.birthday||'—'} ${r.birthday?'(Age '+calcAge(r.birthday)+')':''}</span></div>
     <div class="info-row"><span class="info-label">Gender</span><span class="info-value">${r.gender||'—'}</span></div>
@@ -1104,7 +1356,7 @@ async function acceptRegistration(id) {
     });
     await dbUpdate(`requests/${id}`, { status:'Done', remarks:'Accepted — added to residents registry.', processedBy:currentUser.name, processedAt:Date.now() });
     closeModal();
-    alert(`✅ ${r.name} has been added to the Residents Registry!`);
+    alert(`${r.name} has been added to the Residents Registry!`);
     requests();
   } catch(e) { alert('Error: '+e.message); }
 }
@@ -1127,24 +1379,24 @@ async function acceptDeparture(id) {
       await dbRemove(`residents/${match.id}`);
       await dbUpdate(`requests/${id}`, { status:'Done', remarks:`Accepted — resident record removed. Reason: ${r.leaveReason||'—'}`, processedBy:currentUser.name, processedAt:Date.now() });
       closeModal();
-      alert(`✅ ${r.name}'s resident record has been removed.`);
+      alert(`${r.name}'s resident record has been removed.`);
     } else {
       // No exact match — mark done but warn
       await dbUpdate(`requests/${id}`, { status:'Done', remarks:`Accepted — no exact resident record found to delete. Manual check may be needed.`, processedBy:currentUser.name, processedAt:Date.now() });
       closeModal();
-      alert(`⚠️ Request accepted, but no exact resident record was found for ${r.name}. Please check the registry manually.`);
+      alert(`Request accepted, but no exact resident record was found for ${r.name}. Please check the registry manually.`);
     }
     requests();
   } catch(e) { alert('Error: '+e.message); }
 }
 
 function processRequest(id, cur) {
-  openModal('⚙️ Process Request', `
+  openModal('Process Request', `
     <div class="form-group"><label>Update Status</label>
       <select id="req-stat">${['Pending','Processing','Ready for Pickup','Done','Rejected'].map(s=>`<option ${s===cur?'selected':''}>${s}</option>`).join('')}</select>
     </div>
     <div class="form-group"><label>Remarks</label><textarea id="req-rem" placeholder="Processing notes or instructions for the resident…"></textarea></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'💾 Update',cls:'btn-primary',action:`applyRequest('${id}')` }]);
+  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'Update',cls:'btn-primary',action:`applyRequest('${id}')` }]);
 }
 
 async function applyRequest(id) {
@@ -1169,8 +1421,8 @@ async function healthRecords() {
 
   eid('main-content').innerHTML = `
     <div class="page-header-row">
-      <div><div class="page-title">🏥 Health Records</div><div class="page-sub">${items.length} record(s)</div></div>
-      <button class="btn btn-primary" onclick="openAddHealthRecord()">➕ Add Record</button>
+      <div><div class="page-title">Health Records</div><div class="page-sub">${items.length} record(s)</div></div>
+      <button class="btn btn-primary" onclick="openAddHealthRecord()">Add Record</button>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap"><table>
       <thead><tr><th>Resident</th><th>Visit Date</th><th>BP</th><th>Weight</th><th>Temp</th><th>Chief Complaint</th><th>Actions</th></tr></thead>
@@ -1180,16 +1432,24 @@ async function healthRecords() {
           <td>${h.visitDate||'—'}</td><td>${h.bp||'—'}</td>
           <td>${h.weight?h.weight+' kg':'—'}</td><td>${h.temp?h.temp+'°C':'—'}</td>
           <td style="max-width:135px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.complaint||'—'}</td>
-          <td><button class="btn btn-danger btn-sm" onclick="deleteHealthRecord('${h.id}')">🗑️</button></td>
-        </tr>`; }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">🏥</div>No health records yet.</div></td></tr>`}
+          <td><button class="btn btn-danger btn-sm" onclick="deleteHealthRecord('${h.id}')">Delete</button></td>
+        </tr>`; }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">—</div>No health records yet.</div></td></tr>`}
       </tbody>
     </table></div></div>`;
 }
 
 function openAddHealthRecord() {
-  openModal('🏥 Add Health Record', `
+  openModal('Add Health Record', `
     <div class="form-group"><label>Resident *</label><select id="h-res"><option value="">Select…</option>${_cache._resOpts||''}</select></div>
-    <div class="form-group"><label>Visit Date *</label><input type="date" id="h-date"></div>
+    <div class="form-group">
+      <label>Visit Date *</label>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
+        <select id="h-date-dd" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('h-date')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+        <select id="h-date-mm" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('h-date')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+        <select id="h-date-yy" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('h-date')"><option value="">Year</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option></select>
+      </div>
+      <input type="hidden" id="h-date">
+    </div>
     <div class="grid-3">
       <div class="form-group"><label>Blood Pressure</label><input type="text" id="h-bp" placeholder="120/80"></div>
       <div class="form-group"><label>Weight (kg)</label><input type="number" id="h-weight" step="0.1"></div>
@@ -1202,7 +1462,7 @@ function openAddHealthRecord() {
     <div class="form-group"><label>Chief Complaint</label><input type="text" id="h-comp" placeholder="Main reason for visit"></div>
     <div class="form-group"><label>Assessment / Notes</label><textarea id="h-notes"></textarea></div>
     <div id="h-err" class="alert alert-error" style="display:none"></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'💾 Save',cls:'btn-primary',action:'saveHealthRecord()' }]);
+  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'Save',cls:'btn-primary',action:'saveHealthRecord()' }]);
 }
 
 async function saveHealthRecord() {
@@ -1231,8 +1491,8 @@ async function vaccines() {
 
   eid('main-content').innerHTML = `
     <div class="page-header-row">
-      <div><div class="page-title">💉 Vaccination Records</div><div class="page-sub">${items.length} record(s)</div></div>
-      <button class="btn btn-primary" onclick="openAddVaccine()">➕ Add Vaccine</button>
+      <div><div class="page-title">Vaccination Records</div><div class="page-sub">${items.length} record(s)</div></div>
+      <button class="btn btn-primary" onclick="openAddVaccine()">Add Vaccine</button>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap"><table>
       <thead><tr><th>Resident</th><th>Vaccine</th><th>Dose</th><th>Date Given</th><th>Next Due</th><th>Admin By</th><th>Actions</th></tr></thead>
@@ -1242,14 +1502,14 @@ async function vaccines() {
           <td>${vax.vaccine||'—'}</td>
           <td><span class="badge badge-blue">${vax.dose||'—'}</span></td>
           <td>${vax.dateGiven||'—'}</td><td>${vax.nextDue||'—'}</td><td>${vax.adminBy||'—'}</td>
-          <td><button class="btn btn-danger btn-sm" onclick="deleteVaccine('${vax.id}')">🗑️</button></td>
-        </tr>`; }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">💉</div>No vaccination records.</div></td></tr>`}
+          <td><button class="btn btn-danger btn-sm" onclick="deleteVaccine('${vax.id}')">Delete</button></td>
+        </tr>`; }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">—</div>No vaccination records.</div></td></tr>`}
       </tbody>
     </table></div></div>`;
 }
 
 function openAddVaccine() {
-  openModal('💉 Add Vaccination Record', `
+  openModal('Add Vaccination Record', `
     <div class="form-group"><label>Resident *</label><select id="v-res"><option value="">Select…</option>${_cache._resOpts||''}</select></div>
     <div class="form-group"><label>Vaccine *</label>
       <select id="v-vacc"><option value="">Select vaccine…</option>${['BCG','Hepatitis B','DPT','OPV','IPV','Measles-MR','MMR','PCV','Rotavirus','COVID-19','Influenza','Tdap/Td Booster','HPV','Other'].map(vx=>`<option>${vx}</option>`).join('')}</select>
@@ -1258,13 +1518,29 @@ function openAddVaccine() {
       <div class="form-group"><label>Dose *</label>
         <select id="v-dose"><option>1st Dose</option><option>2nd Dose</option><option>3rd Dose</option><option>4th Dose</option><option>Booster</option><option>Annual</option></select>
       </div>
-      <div class="form-group"><label>Date Given *</label><input type="date" id="v-date"></div>
+      <div class="form-group">
+      <label>Date Given *</label>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
+        <select id="v-date-dd" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('v-date')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+        <select id="v-date-mm" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('v-date')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+        <select id="v-date-yy" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('v-date')"><option value="">Year</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option></select>
+      </div>
+      <input type="hidden" id="v-date">
     </div>
-    <div class="form-group"><label>Next Due Date</label><input type="date" id="v-next"></div>
+    </div>
+    <div class="form-group">
+      <label>Next Due Date</label>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
+        <select id="v-next-dd" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('v-next')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+        <select id="v-next-mm" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('v-next')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+        <select id="v-next-yy" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('v-next')"><option value="">Year</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option></select>
+      </div>
+      <input type="hidden" id="v-next">
+    </div>
     <div class="form-group"><label>Administered By</label><input type="text" id="v-admin" value="${currentUser.name}"></div>
     <div class="form-group"><label>Lot No. / Remarks</label><input type="text" id="v-rem" placeholder="Vaccine lot number or notes"></div>
     <div id="v-err" class="alert alert-error" style="display:none"></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'💾 Save',cls:'btn-primary',action:'saveVaccine()' }]);
+  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'Save',cls:'btn-primary',action:'saveVaccine()' }]);
 }
 
 async function saveVaccine() {
@@ -1293,8 +1569,8 @@ async function maternal() {
 
   eid('main-content').innerHTML = `
     <div class="page-header-row">
-      <div><div class="page-title">🤱 Maternal & Child Health</div><div class="page-sub">${items.length} record(s)</div></div>
-      <button class="btn btn-primary" onclick="openAddMaternal()">➕ Add Record</button>
+      <div><div class="page-title">Maternal & Child Health</div><div class="page-sub">${items.length} record(s)</div></div>
+      <button class="btn btn-primary" onclick="openAddMaternal()">Add Record</button>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap"><table>
       <thead><tr><th>Patient</th><th>Type</th><th>Visit Date</th><th>AOG/Age</th><th>BP</th><th>Weight</th><th>Status</th><th>Act.</th></tr></thead>
@@ -1305,20 +1581,28 @@ async function maternal() {
           <td>${m.visitDate||'—'}</td><td>${m.aog||'—'}</td><td>${m.bp||'—'}</td>
           <td>${m.weight?m.weight+' kg':'—'}</td>
           <td><span class="badge badge-green">${m.status||'Active'}</span></td>
-          <td><button class="btn btn-danger btn-sm" onclick="deleteMaternal('${m.id}')">🗑️</button></td>
-        </tr>`; }).join('') : `<tr><td colspan="8"><div class="empty-state"><div class="emoji">🤱</div>No maternal records.</div></td></tr>`}
+          <td><button class="btn btn-danger btn-sm" onclick="deleteMaternal('${m.id}')">Delete</button></td>
+        </tr>`; }).join('') : `<tr><td colspan="8"><div class="empty-state"><div class="emoji">—</div>No maternal records.</div></td></tr>`}
       </tbody>
     </table></div></div>`;
 }
 
 function openAddMaternal() {
-  openModal('🤱 Maternal / Child Health Record', `
+  openModal('Maternal / Child Health Record', `
     <div class="form-group"><label>Patient *</label><select id="m-res"><option value="">Select…</option>${_cache._femOpts||''}</select></div>
     <div class="form-group"><label>Record Type *</label>
       <select id="m-type">${['Prenatal Visit','Postpartum Visit','Newborn Screening','Child Health Check','Nutrition Assessment','Family Planning','Breastfeeding Consultation'].map(t=>`<option>${t}</option>`).join('')}</select>
     </div>
     <div class="grid-2">
-      <div class="form-group"><label>Visit Date *</label><input type="date" id="m-date"></div>
+    <div class="form-group">
+      <label>Visit Date *</label>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
+        <select id="m-date-dd" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('m-date')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+        <select id="m-date-mm" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('m-date')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+        <select id="m-date-yy" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('m-date')"><option value="">Year</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option></select>
+      </div>
+      <input type="hidden" id="m-date">
+    </div>
       <div class="form-group"><label>AOG / Child Age</label><input type="text" id="m-aog" placeholder="e.g. 28 weeks / 3 months"></div>
     </div>
     <div class="grid-2">
@@ -1326,14 +1610,22 @@ function openAddMaternal() {
       <div class="form-group"><label>Blood Pressure</label><input type="text" id="m-bp" placeholder="120/80"></div>
     </div>
     <div class="grid-2">
-      <div class="form-group"><label>Next Visit</label><input type="date" id="m-next"></div>
+    <div class="form-group">
+      <label>Next Visit</label>
+      <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
+        <select id="m-next-dd" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('m-next')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
+        <select id="m-next-mm" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('m-next')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
+        <select id="m-next-yy" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('m-next')"><option value="">Year</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option></select>
+      </div>
+      <input type="hidden" id="m-next">
+    </div>
       <div class="form-group"><label>Status</label>
         <select id="m-stat"><option>Active</option><option>Completed</option><option>Referred</option><option>High Risk</option></select>
       </div>
     </div>
     <div class="form-group"><label>Findings / Notes</label><textarea id="m-notes"></textarea></div>
     <div id="m-err" class="alert alert-error" style="display:none"></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'💾 Save',cls:'btn-primary',action:'saveMaternal()' }]);
+  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'Save',cls:'btn-primary',action:'saveMaternal()' }]);
 }
 
 async function saveMaternal() {
@@ -1355,21 +1647,56 @@ async function deleteMaternal(id) {
 // ════════════════════════════════════════════════
 function healthEdu() {
   eid('main-content').innerHTML = `
-    <div style="margin-bottom:20px"><div class="page-title">📚 Basic Health Education</div><div class="page-sub">Health awareness programs and community seminars</div></div>
+    <div style="margin-bottom:20px"><div class="page-title">Basic Health Education</div><div class="page-sub">Health awareness programs and community seminars</div></div>
     <div class="grid-2" style="gap:13px">
-      ${[['🫀','Cardiovascular Health','Blood pressure monitoring, heart disease prevention, and healthy lifestyle counseling.'],
-         ['🍎','Proper Nutrition','Balanced diet, malnutrition prevention, and community feeding programs.'],
-         ['🦷','Oral Health','Proper dental hygiene, tooth care, and fluoride treatment programs.'],
-         ['🧼','Sanitation & Hygiene','Handwashing, personal hygiene, and safe water practices.'],
-         ['🧘','Mental Health Awareness','Stress management, community support, and referral systems.'],
-         ['🚭','Substance Use Prevention','Anti-smoking, anti-drug, and alcohol awareness campaigns.'],
-         ['🤰','Reproductive Health','Family planning, pre-marital counseling, and reproductive health.'],
-         ['🦟','Disease Prevention','Vector control, dengue, TB awareness, and communicable disease education.']
-      ].map(([icon,title,desc])=>`
-        <div class="card" style="display:flex;gap:12px;align-items:flex-start">
-          <div style="font-size:1.8rem;flex-shrink:0">${icon}</div>
-          <div><div style="font-weight:600;margin-bottom:3px">${title}</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">${desc}</div></div>
-        </div>`).join('')}
+              <div class="card" style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div><div style="font-weight:600;margin-bottom:3px">Cardiovascular Health</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">Blood pressure monitoring, heart disease prevention, and healthy lifestyle counseling.</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div><div style="font-weight:600;margin-bottom:3px">Proper Nutrition</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">Balanced diet, malnutrition prevention, and community feeding programs.</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <div><div style="font-weight:600;margin-bottom:3px">Oral Health</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">Proper dental hygiene, tooth care, and fluoride treatment programs.</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <div><div style="font-weight:600;margin-bottom:3px">Sanitation & Hygiene</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">Handwashing, personal hygiene, and safe water practices.</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          </div>
+          <div><div style="font-weight:600;margin-bottom:3px">Mental Health Awareness</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">Stress management, community support, and referral systems.</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="22" x2="12" y2="11"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/><circle cx="12" cy="5" r="3"/></svg>
+          </div>
+          <div><div style="font-weight:600;margin-bottom:3px">Substance Use Prevention</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">Anti-smoking, anti-drug, and alcohol awareness campaigns.</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div><div style="font-weight:600;margin-bottom:3px">Reproductive Health</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">Family planning, pre-marital counseling, and reproductive health.</div></div>
+        </div>
+        <div class="card" style="display:flex;gap:13px;align-items:flex-start">
+          <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+          <div><div style="font-weight:600;margin-bottom:3px">Disease Prevention</div><div style="color:var(--text2);font-size:.81rem;line-height:1.5">Vector control, dengue, TB awareness, and communicable disease education.</div></div>
+        </div>
     </div>`;
 }
 
@@ -1387,24 +1714,24 @@ async function primaryCare() {
     ['60+ yrs (Senior Citizens)',  r=>calcAge(r.birthdate)>=60]
   ];
   eid('main-content').innerHTML = `
-    <div style="margin-bottom:20px"><div class="page-title">🩺 Primary Healthcare</div><div class="page-sub">Community-based primary healthcare overview</div></div>
+    <div style="margin-bottom:20px"><div class="page-title">Primary Healthcare</div><div class="page-sub">Community-based primary healthcare overview</div></div>
     <div class="stats-grid">
-      <div class="stat-card green"><div class="stat-icon">🏥</div><div class="stat-value">${hrList.length}</div><div class="stat-label">Consultations</div></div>
-      <div class="stat-card blue"><div class="stat-icon">💉</div><div class="stat-value">${vcList.length}</div><div class="stat-label">Vaccinations</div></div>
-      <div class="stat-card yellow"><div class="stat-icon">🤱</div><div class="stat-value">${mtList.length}</div><div class="stat-label">Maternal Visits</div></div>
-      <div class="stat-card purple"><div class="stat-icon">👶</div><div class="stat-value">${resList.filter(r=>calcAge(r.birthdate)<=5).length}</div><div class="stat-label">Under 5 yrs</div></div>
-      <div class="stat-card red"><div class="stat-icon">👴</div><div class="stat-value">${resList.filter(r=>calcAge(r.birthdate)>=60).length}</div><div class="stat-label">Senior Citizens</div></div>
+      <div class="stat-card green"><div class="stat-icon">Consult.</div><div class="stat-value">${hrList.length}</div><div class="stat-label">Consultations</div></div>
+      <div class="stat-card blue"><div class="stat-icon">Vaccines</div><div class="stat-value">${vcList.length}</div><div class="stat-label">Vaccinations</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">Maternal</div><div class="stat-value">${mtList.length}</div><div class="stat-label">Maternal Visits</div></div>
+      <div class="stat-card purple"><div class="stat-icon">Under 5</div><div class="stat-value">${resList.filter(r=>calcAge(r.birthdate)<=5).length}</div><div class="stat-label">Under 5 yrs</div></div>
+      <div class="stat-card red"><div class="stat-icon">Seniors</div><div class="stat-value">${resList.filter(r=>calcAge(r.birthdate)>=60).length}</div><div class="stat-label">Senior Citizens</div></div>
     </div>
     <div class="grid-2" style="gap:15px">
       <div class="card">
-        <div style="font-weight:600;margin-bottom:12px">🩺 Available Services</div>
+        <div style="font-weight:600;margin-bottom:12px">Available Services</div>
         ${['Blood Pressure Monitoring','Blood Sugar Screening','First Aid & Wound Care','Prenatal Check-up','Postpartum Visit','Nutrition Assessment','Dental Services','TB-DOTS Program','Referral Services'].map(s=>`
           <div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border);font-size:.83rem">
             <span style="color:var(--accent)">✓</span>${s}
           </div>`).join('')}
       </div>
       <div class="card">
-        <div style="font-weight:600;margin-bottom:12px">📊 Population by Age Group</div>
+        <div style="font-weight:600;margin-bottom:12px">Population by Age Group</div>
         ${ageGroups.map(([label,filter])=>{
           const count=resList.filter(filter).length;
           const pct=total?Math.round(count/total*100):0;
@@ -1424,6 +1751,22 @@ async function primaryCare() {
 // ════════════════════════════════════════════════
 // PUBLIC PORTAL — DYNAMIC FIELDS
 // ════════════════════════════════════════════════
+function syncDate(prefix) {
+  var dd = (eid(prefix+'-dd') && eid(prefix+'-dd').value) || '';
+  var mm = (eid(prefix+'-mm') && eid(prefix+'-mm').value) || '';
+  var yy = (eid(prefix+'-yy') && eid(prefix+'-yy').value) || '';
+  var hidden = eid(prefix);
+  if (hidden) hidden.value = (dd && mm && yy) ? yy+'-'+mm+'-'+dd : '';
+}
+
+function syncPubBday() {
+  const dd = eid('pub-bday-dd')?.value || '';
+  const mm = eid('pub-bday-mm')?.value || '';
+  const yy = eid('pub-bday-yy')?.value || '';
+  if (dd && mm && yy) eid('pub-bday').value = `${yy}-${mm}-${dd}`;
+  else eid('pub-bday').value = '';
+}
+
 function handleReqTypeChange() {
   const rt = v('pub-reqtype');
   const extraReg   = eid('extra-register');
@@ -1503,15 +1846,16 @@ async function submitPublicRequest() {
     await dbPush('requests', data);
 
     // Clear all fields
-    ['pub-fname','pub-lname','pub-mname','pub-bday','pub-gender','pub-address','pub-contact',
-     'pub-reqtype','pub-purpose','pub-civil','pub-religion','pub-household','pub-leave-reason','pub-new-address']
+    ['pub-fname','pub-lname','pub-mname','pub-bday','pub-bday-dd','pub-bday-mm','pub-bday-yy',
+     'pub-gender','pub-address','pub-contact','pub-reqtype','pub-purpose','pub-civil',
+     'pub-religion','pub-household','pub-leave-reason','pub-new-address']
       .forEach(id=>{ const el=eid(id); if(el) el.value=''; });
     handleReqTypeChange(); // reset extra fields visibility
 
     eid('pub-success').style.display='flex';
     setTimeout(()=>{ const el=eid('pub-success'); if(el) el.style.display='none'; }, 8000);
   } catch(e) { errEl.textContent='Failed: '+e.message; errEl.style.display='flex'; }
-  btn.innerHTML='📤 Submit Request'; btn.disabled=false;
+  btn.innerHTML='Submit Request'; btn.disabled=false;
 }
 
 // ════════════════════════════════════════════════
