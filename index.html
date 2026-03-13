@@ -84,7 +84,7 @@
   .badge-blue{background:rgba(74,158,255,.14);color:var(--blue);}
   .badge-purple{background:rgba(139,104,219,.14);color:var(--purple);}
   .badge-gray{background:rgba(139,148,158,.1);color:var(--text2);}
-  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
   .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:580px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow);}
   .modal-header{padding:17px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--surface);z-index:1;}
   .modal-title{font-family:'DM Serif Display',serif;font-size:1.2rem;}
@@ -138,7 +138,12 @@
   #print-area{display:none;}
   @media print{body>*{display:none!important;}#print-area{display:block!important;position:fixed;inset:0;background:#fff;padding:48px;z-index:99999;color:#000;}}
   /* ── New UX additions ── */
-  .offline-banner{position:fixed;bottom:0;left:0;right:0;background:#e05c5c;color:#fff;text-align:center;padding:9px;font-size:.83rem;font-weight:600;z-index:2000;display:none;}
+  .photo-upload-wrap{display:flex;align-items:center;gap:14px;margin-bottom:4px;}
+  .photo-preview{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2rem;flex-shrink:0;overflow:hidden;}
+  .photo-preview img{width:100%;height:100%;object-fit:cover;}
+  .photo-avatar{width:64px;height:64px;border-radius:50%;object-fit:cover;border:2px solid var(--border);}
+  .resident-photo-lg{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accent);margin:0 auto 12px;display:block;}
+  .table-avatar{width:34px;height:34px;border-radius:50%;object-fit:cover;border:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;}
   .session-warn{position:fixed;top:0;left:0;right:0;background:#d4a84b;color:#1a1a1a;text-align:center;padding:9px;font-size:.83rem;font-weight:600;z-index:2000;display:none;}
   .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 16px;font-size:.84rem;box-shadow:var(--shadow);z-index:3000;display:flex;align-items:center;gap:9px;transform:translateY(80px);opacity:0;transition:all .3s;}
   .toast.show{transform:translateY(0);opacity:1;}
@@ -210,6 +215,14 @@
       </div>
     </div>
 
+    <!-- Announcements from Captain -->
+    <div class="public-form-wrap" style="margin-bottom:0">
+      <div id="public-announcements-wrap" style="display:none;margin-bottom:24px">
+        <div style="font-weight:600;font-size:.88rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Barangay Announcements</div>
+        <div id="public-announcements-list"></div>
+      </div>
+    </div>
+
     <div class="public-form-wrap">
       <div class="card">
         <div id="pub-success" class="alert alert-success" style="display:none">Request submitted! The Barangay Secretary will review and process it soon.</div>
@@ -244,6 +257,7 @@
 
         <!-- Basic info (always visible) -->
         <div style="font-weight:600;font-size:.88rem;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Your Information</div>
+
         <div class="grid-2">
           <div class="form-group"><label>First Name *</label><input type="text" id="pub-fname" placeholder="Juan"></div>
           <div class="form-group"><label>Last Name *</label><input type="text" id="pub-lname" placeholder="dela Cruz"></div>
@@ -429,6 +443,18 @@
         <div id="extra-register" class="extra-fields">
           <div class="section-divider"></div>
           <div style="font-weight:600;font-size:.88rem;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Registration Details</div>
+          <!-- Photo — only for residency registration -->
+          <div class="form-group">
+            <label>Photo <span style="font-size:.75rem;color:var(--text3)">(optional, max 5MB)</span></label>
+            <div class="photo-upload-wrap">
+              <div class="photo-preview" id="pub-photo-preview">👤</div>
+              <div>
+                <input type="file" id="pub-photo" accept="image/*" style="display:none" onchange="previewPhoto('pub-photo')">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="eid('pub-photo').click()">📷 Choose Photo</button>
+                <div style="font-size:.73rem;color:var(--text3);margin-top:5px">Clear face photo recommended</div>
+              </div>
+            </div>
+          </div>
           <div class="grid-2">
             <div class="form-group"><label>Middle Name</label><input type="text" id="pub-mname" placeholder="Optional"></div>
             <div class="form-group"><label>Civil Status</label>
@@ -667,7 +693,79 @@ function exportCSV(filename, headers, rows) {
   a.download = filename; a.click();
 }
 
-// ── PAGINATION ──
+// ── IMAGE COMPRESSION (Base64, 300×300, 70% quality) ──
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) { resolve(null); return; }
+    if (file.size > 5 * 1024 * 1024) { reject(new Error('Image must be under 5MB.')); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const SIZE = 300;
+        let w = img.width, h = img.height;
+        if (w > h) { h = Math.round(h * SIZE / w); w = SIZE; }
+        else       { w = Math.round(w * SIZE / h); h = SIZE; }
+        canvas.width = SIZE; canvas.height = SIZE;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#f0f0f0';
+        ctx.fillRect(0, 0, SIZE, SIZE);
+        ctx.drawImage(img, (SIZE-w)/2, (SIZE-h)/2, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.70));
+      };
+      img.onerror = () => reject(new Error('Invalid image file.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Could not read file.'));
+    reader.readAsDataURL(file);
+  });
+}
+function photoInputHtml(currentPhoto, inputId='r-photo') {
+  return `
+    <div class="form-group">
+      <label>Photo <span style="font-size:.75rem;color:var(--text3)">(optional, max 5MB)</span></label>
+      <div class="photo-upload-wrap">
+        <div class="photo-preview" id="${inputId}-preview">
+          ${currentPhoto ? `<img src="${currentPhoto}" alt="photo">` : '👤'}
+        </div>
+        <div>
+          <input type="file" id="${inputId}" accept="image/*" style="display:none" onchange="previewPhoto('${inputId}')">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="eid('${inputId}').click()">📷 Choose Photo</button>
+          ${currentPhoto ? `<button type="button" class="btn btn-ghost btn-sm" style="margin-left:6px;color:var(--red)" onclick="clearPhoto('${inputId}')">✕ Remove</button>` : ''}
+          <div style="font-size:.73rem;color:var(--text3);margin-top:5px">Will be compressed to 300×300px (~50KB)</div>
+        </div>
+      </div>
+    </div>`;
+}
+async function previewPhoto(inputId) {
+  const file = eid(inputId)?.files?.[0];
+  if (!file) return;
+  try {
+    const b64 = await compressImage(file);
+    const prev = eid(`${inputId}-preview`);
+    if (prev) prev.innerHTML = `<img src="${b64}" alt="photo">`;
+    // Store compressed data on the input element for saveResident to pick up
+    eid(inputId)._compressed = b64;
+  } catch(e) { showToast(e.message, 'error'); }
+}
+function clearPhoto(inputId) {
+  const prev = eid(`${inputId}-preview`);
+  if (prev) prev.innerHTML = '👤';
+  const inp = eid(inputId);
+  if (inp) { inp.value = ''; inp._compressed = null; }
+}
+function getPhoto(inputId) {
+  const inp = eid(inputId);
+  return inp?._compressed !== undefined ? inp._compressed : null;
+}
+function avatarHtml(photo, name, size=34) {
+  if (photo) return `<img src="${photo}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:1px solid var(--border)" alt="${name}">`;
+  const initials = (name||'?').split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+  return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*.35)}px;font-weight:700;flex-shrink:0">${initials}</div>`;
+}
+
+
 function paginate(items, page, perPage=ROWS_PER_PAGE) {
   const pages = Math.max(1, Math.ceil(items.length / perPage));
   const p = Math.min(Math.max(1, page), pages);
@@ -734,7 +832,14 @@ async function doLogin() {
     initApp();
     resetSessionTimer();
   } catch(e) {
-    setErr('login-error', e.message);
+    const msg = e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found' || (e.message||'').includes('INVALID_LOGIN_CREDENTIALS')
+      ? 'Invalid email or password. Please try again.'
+      : e.code === 'auth/too-many-requests'
+      ? 'Too many failed attempts. Please wait and try again.'
+      : e.code === 'auth/network-request-failed'
+      ? 'Network error. Check your connection.'
+      : e.message || 'Login failed. Please try again.';
+    setErr('login-error', msg);
   }
   btn.innerHTML = 'Sign In'; btn.disabled = false;
 }
@@ -763,8 +868,17 @@ async function sendPasswordReset() {
   try {
     await auth.sendPasswordResetEmail(email);
     const el = eid('reset-msg');
-    if (el) { el.textContent = '✓ Reset link sent! Check your email.'; el.className='alert alert-success'; el.style.display='flex'; }
-  } catch(e) { setErr('reset-msg', e.message); }
+    if (el) { el.textContent = '✓ Reset link sent! Check your email inbox.'; el.className='alert alert-success'; el.style.display='flex'; }
+  } catch(e) {
+    const msg = (e.message||'').includes('INVALID_LOGIN_CREDENTIALS') || e.code==='auth/user-not-found'
+      ? 'No account found with that email.'
+      : e.code==='auth/invalid-email'
+      ? 'Please enter a valid email address.'
+      : e.code==='auth/network-request-failed'
+      ? 'Network error. Check your connection.'
+      : 'Could not send reset email. Contact your administrator.';
+    setErr('reset-msg', msg);
+  }
 }
 
 // Keep session alive on page reload
@@ -812,8 +926,11 @@ function initApp() {
 const NAV = {
   captain:   [
     { id:'dashboard', icon:'◈', label:'Dashboard' },
+    { section:'Governance' },
+    { id:'announcements', icon:'◎', label:'Announcements' },
+    { id:'summary-report', icon:'▦', label:'Summary Report' },
     { section:'Logs' },
-    { id:'audit-log', icon:'📋', label:'Audit Log' }
+    { id:'audit-log', icon:'▤', label:'Audit Log' }
   ],
   secretary: [
     { id:'dashboard', icon:'◈', label:'Dashboard' },
@@ -837,6 +954,8 @@ const NAV = {
     { id:'dashboard', icon:'◈', label:'Dashboard' },
     { section:'Healthcare' },
     { id:'health-records', icon:'✚', label:'Health Records' },
+    { id:'walkin-care', icon:'+', label:'Walk-in / Non-Resident' },
+    { id:'nutrition', icon:'N', label:'Nutrition / Feeding Program' },
     { id:'vaccines', icon:'◎', label:'Vaccination' },
     { id:'maternal', icon:'♡', label:'Maternal & Child' },
     { id:'health-edu', icon:'☰', label:'Health Education' },
@@ -857,7 +976,9 @@ const PAGES = {
   dashboard, residents, households, certificates, clearances, indigency, business,
   blotters, summons, requests,
   'health-records': healthRecords, vaccines, maternal,
+  'walkin-care': walkinCare, nutrition, financialAid,
   'health-edu': healthEdu, 'primary-care': primaryCare,
+  announcements, 'summary-report': summaryReport,
   'audit-log': auditLog
 };
 
@@ -972,7 +1093,7 @@ async function residents(page=1) {
       <thead><tr><th>Name</th><th>Age</th><th>Gender</th><th>Civil Status</th><th>Household</th><th>Address</th><th>Actions</th></tr></thead>
       <tbody>
         ${items.length ? items.map(r=>`<tr>
-          <td><strong>${r.lastName||''}, ${r.firstName||''}</strong></td>
+          <td><div style="display:flex;align-items:center;gap:9px">${avatarHtml(r.photo,`${r.firstName} ${r.lastName}`,34)}<strong>${r.lastName||''}, ${r.firstName||''}</strong></div></td>
           <td>${calcAge(r.birthdate)}</td>
           <td><span class="badge ${r.gender==='Male'?'badge-blue':'badge-purple'}">${r.gender||'—'}</span></td>
           <td>${r.civilStatus||'—'}</td>
@@ -1053,6 +1174,7 @@ function getBday(prefix) {
 
 function residentForm(d={}) {
   return `
+    ${photoInputHtml(d.photo||null, 'r-photo')}
     <div class="grid-2">
       <div class="form-group"><label>First Name *</label><input type="text" id="r-fname" value="${d.firstName||''}"></div>
       <div class="form-group"><label>Last Name *</label><input type="text" id="r-lname" value="${d.lastName||''}"></div>
@@ -1097,8 +1219,12 @@ function openEditResident(id) {
 async function saveResident(id=null) {
   const fn=v('r-fname'),ln=v('r-lname'),bd=getBday('r-bday'),gn=v('r-gender'),addr=v('r-address');
   if (!fn||!ln||!bd||!gn||!addr) { setErr('r-err','Please fill all required fields.'); return; }
+  const photo = getPhoto('r-photo');
+  const existing = id ? ((_cache.residents||[]).find(r=>r.id===id)||{}).photo : null;
   const data = { firstName:fn, lastName:ln, middleName:v('r-mname'), birthdate:bd, gender:gn,
-    civilStatus:v('r-civil'), religion:v('r-religion'), householdId:v('r-household'), address:addr, contact:v('r-contact') };
+    civilStatus:v('r-civil'), religion:v('r-religion'), householdId:v('r-household'), address:addr, contact:v('r-contact'),
+    photo: photo !== null ? photo : (existing||null)
+  };
   try {
     if (id) { await dbUpdate(`residents/${id}`, data); await auditWrite('Edit Resident', `${fn} ${ln}`); }
     else { await dbPush('residents', data); await auditWrite('Add Resident', `${fn} ${ln}`); }
@@ -1111,6 +1237,7 @@ async function viewResident(id) {
   const [certs, clears] = await Promise.all([dbList('certificates'), dbList('clearances')]);
   const docs = [...certs.filter(d=>d.residentId===id), ...clears.filter(d=>d.residentId===id)];
   openModal(`Resident: ${r.firstName} ${r.lastName}`, `
+    ${r.photo ? `<img src="${r.photo}" class="resident-photo-lg" alt="${r.firstName}">` : `<div style="width:90px;height:90px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;margin:0 auto 12px">${(r.firstName||'?')[0]}${(r.lastName||'?')[0]}</div>`}
     <div class="info-row"><span class="info-label">Full Name</span><span class="info-value">${r.firstName} ${r.middleName||''} ${r.lastName}</span></div>
     <div class="info-row"><span class="info-label">Age</span><span class="info-value">${calcAge(r.birthdate)} years old</span></div>
     <div class="info-row"><span class="info-label">Birthdate</span><span class="info-value">${r.birthdate||'—'}</span></div>
@@ -1155,30 +1282,162 @@ async function deleteResident(id) {
 // HOUSEHOLDS
 // ════════════════════════════════════════════════
 async function households() {
-  const list = await dbList('residents');
+  const [resList, hhProfiles] = await Promise.all([dbList('residents'), dbList('householdProfiles')]);
   const map = {};
-  list.forEach(r => { const hid = r.householdId||'UNASSIGNED'; if(!map[hid])map[hid]=[]; map[hid].push(r); });
+  resList.forEach(r => { const hid = r.householdId||'UNASSIGNED'; if(!map[hid])map[hid]=[]; map[hid].push(r); });
+  const profMap = {};
+  hhProfiles.forEach(p => { profMap[p.householdId] = p; });
+
+  const needColors = { 'Medical Assistance':'badge-red','Food Assistance':'badge-yellow','Financial Aid (Cash)':'badge-yellow',
+    'Educational Aid':'badge-blue','Livelihood Support':'badge-blue','Burial Assistance':'badge-gray',
+    'Calamity Relief':'badge-red','Senior Citizen Benefit':'badge-green','PWD Benefit':'badge-green',
+    'Solo Parent Benefit':'badge-green' };
+
   eid('main-content').innerHTML = `
-    <div style="margin-bottom:20px"><div class="page-title">Household Groups</div><div class="page-sub">${Object.keys(map).length} household(s)</div></div>
+    <div style="margin-bottom:20px">
+      <div class="page-title">Household Groups</div>
+      <div class="page-sub">${Object.keys(map).length} household(s) — click a card to view &amp; edit profile</div>
+    </div>
     ${!Object.keys(map).length ? '<div class="empty-state"><div class="emoji">—</div>No residents yet.</div>' :
-    `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:13px">
-      ${Object.entries(map).map(([hid,members])=>`
-        <div class="card">
+    `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:13px">
+      ${Object.entries(map).map(([hid, members]) => {
+        const prof = profMap[hid]||{};
+        const income = prof.monthlyIncome ? 'PHP '+Number(prof.monthlyIncome).toLocaleString() : 'Not set';
+        const needs  = prof.needs && prof.needs.length ? prof.needs : [];
+        const is4ps  = prof.is4ps === 'Yes';
+        const cls    = prof.classification || '';
+        const clsBadge = cls==='Indigent'||cls==='Poor' ? 'badge-red' : cls==='Low Income' ? 'badge-yellow' : '';
+        return `
+        <div class="card" style="cursor:pointer;transition:border-color .18s"
+             onclick="viewHousehold('${hid}')"
+             onmouseover="this.style.borderColor='var(--accent)'"
+             onmouseout="this.style.borderColor=''">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <span class="badge badge-blue">${hid}</span>
-            <span style="font-size:.76rem;color:var(--text2)">${members.length} member(s)</span>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+              ${is4ps ? '<span class="badge badge-green" style="font-size:.65rem">4Ps</span>' : ''}
+              ${cls && clsBadge ? '<span class="badge '+clsBadge+'" style="font-size:.65rem">'+cls+'</span>' : ''}
+              <span style="font-size:.75rem;color:var(--text2)">${members.length} member(s)</span>
+            </div>
           </div>
-          ${members.map(m=>`
+          ${members.slice(0,3).map(m=>`
             <div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--border)">
-              <div style="width:25px;height:25px;border-radius:6px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0">${(m.firstName||'?')[0]}</div>
+              ${avatarHtml(m.photo, m.firstName+' '+m.lastName, 26)}
               <div>
-                <div style="font-size:.83rem;font-weight:500">${m.firstName} ${m.lastName}</div>
+                <div style="font-size:.82rem;font-weight:500">${m.firstName} ${m.lastName}</div>
                 <div style="font-size:.7rem;color:var(--text2)">${calcAge(m.birthdate)} yrs • ${m.gender||'—'}</div>
               </div>
             </div>`).join('')}
-          <div style="margin-top:6px;font-size:.76rem;color:var(--text3)">${members[0]?.address||'—'}</div>
-        </div>`).join('')}
+          ${members.length > 3 ? `<div style="font-size:.74rem;color:var(--text3);padding:4px 0">+${members.length-3} more</div>` : ''}
+          <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;font-size:.78rem;margin-bottom:6px">
+              <span style="color:var(--text2)">Monthly Income</span>
+              <strong>${income}</strong>
+            </div>
+            ${needs.length ? `<div style="display:flex;flex-wrap:wrap;gap:3px">
+              ${needs.map(n=>`<span class="badge ${needColors[n]||'badge-gray'}" style="font-size:.66rem">${n}</span>`).join('')}
+            </div>` : '<span style="font-size:.75rem;color:var(--text3)">No needs recorded</span>'}
+          </div>
+        </div>`;
+      }).join('')}
     </div>`}`;
+}
+
+async function viewHousehold(hid) {
+  const [resList, hhProfiles] = await Promise.all([dbList('residents'), dbList('householdProfiles')]);
+  const members = resList.filter(r => (r.householdId||'UNASSIGNED') === hid);
+  const profList = hhProfiles.filter(p => p.householdId === hid);
+  const prof = profList[0] || {};
+  const profId = prof.id || null;
+  const needOpts = ['Medical Assistance','Food Assistance','Financial Aid (Cash)','Educational Aid',
+    'Livelihood Support','Burial Assistance','Calamity Relief','Senior Citizen Benefit','PWD Benefit','Solo Parent Benefit'];
+  const currentNeeds = prof.needs || [];
+
+  openModal('Household: '+hid, `
+    <div style="margin-bottom:14px">
+      <div style="font-weight:600;font-size:.82rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Members (${members.length})</div>
+      <div style="max-height:160px;overflow-y:auto">
+        ${members.map(m=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+            ${avatarHtml(m.photo, m.firstName+' '+m.lastName, 30)}
+            <div>
+              <div style="font-size:.85rem;font-weight:500">${m.firstName} ${m.middleName||''} ${m.lastName}</div>
+              <div style="font-size:.72rem;color:var(--text2)">${calcAge(m.birthdate)} yrs • ${m.gender||'—'} • ${m.civilStatus||'—'}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-weight:600;font-size:.82rem;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Financial Profile</div>
+      <div class="grid-2">
+        <div class="form-group"><label>Monthly Income (PHP)</label>
+          <input type="number" id="hh-income" value="${prof.monthlyIncome||''}" placeholder="e.g. 5000">
+        </div>
+        <div class="form-group"><label>Income Classification</label>
+          <select id="hh-class">
+            <option value="">— Select —</option>
+            ${['Indigent','Poor','Low Income','Middle Income','High Income'].map(c=>`<option value="${c}" ${prof.classification===c?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="form-group"><label>4Ps / NHTS Beneficiary?</label>
+          <select id="hh-4ps">
+            <option value="No" ${(prof.is4ps||'No')==='No'?'selected':''}>No</option>
+            <option value="Yes" ${prof.is4ps==='Yes'?'selected':''}>Yes</option>
+          </select>
+        </div>
+        <div class="form-group"><label>House Ownership</label>
+          <select id="hh-house">
+            ${['','Owned','Renting','Shared','Informal Settler'].map(h=>`<option value="${h}" ${prof.houseOwnership===h?'selected':''}>${h||'— Select —'}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>Types of Need / Assistance Required</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px">
+          ${needOpts.map(n=>`
+            <label style="display:flex;align-items:center;gap:7px;font-size:.83rem;cursor:pointer;padding:6px 8px;border-radius:7px;background:var(--surface2)">
+              <input type="checkbox" id="hn-${n.replace(/[\s/()]/g,'-')}" ${currentNeeds.includes(n)?'checked':''}
+                style="width:15px;height:15px;accent-color:var(--accent)">
+              ${n}
+            </label>`).join('')}
+        </div>
+      </div>
+      <div class="form-group"><label>Remarks / Notes</label>
+        <textarea id="hh-remarks" placeholder="Situation notes, follow-up actions…">${prof.remarks||''}</textarea>
+      </div>
+    </div>
+    <div id="hh-err" class="alert alert-error" style="display:none"></div>`,
+  [{ label:'Close', cls:'btn-ghost', action:'closeModal()' },
+   { label:'Save Profile', cls:'btn-primary', action:`saveHouseholdProfile('${hid}','${profId||''}')` }]);
+}
+
+async function saveHouseholdProfile(hid, profId) {
+  const needOpts = ['Medical Assistance','Food Assistance','Financial Aid (Cash)','Educational Aid',
+    'Livelihood Support','Burial Assistance','Calamity Relief','Senior Citizen Benefit','PWD Benefit','Solo Parent Benefit'];
+  const selectedNeeds = needOpts.filter(n => {
+    const el = eid('hn-'+n.replace(/[\s/()]/g,'-'));
+    return el && el.checked;
+  });
+  const data = {
+    householdId: hid,
+    monthlyIncome: v('hh-income'),
+    classification: v('hh-class'),
+    is4ps: v('hh-4ps'),
+    houseOwnership: v('hh-house'),
+    needs: selectedNeeds,
+    remarks: v('hh-remarks'),
+    updatedBy: currentUser.name
+  };
+  try {
+    if (profId) {
+      await dbUpdate('householdProfiles/'+profId, data);
+    } else {
+      await dbPush('householdProfiles', data);
+    }
+    await auditWrite('Household Profile', hid+' — '+selectedNeeds.length+' need(s)');
+    closeModal(); showToast('Household profile saved.'); households();
+  } catch(e) { setErr('hh-err', e.message); }
 }
 
 // ════════════════════════════════════════════════
@@ -1243,6 +1502,7 @@ async function saveDoc(node, label) {
 async function deleteDoc(node, id, label) {
   if (!confirm(`Delete this ${label}?`)) return;
   await dbRemove(`${node}/${id}`);
+  await auditWrite(`Delete ${label}`, `ID: ${id}`);
   if (node==='certificates') certificates();
   else if (node==='clearances') clearances();
   else if (node==='indigency') indigency();
@@ -1559,13 +1819,17 @@ function updateBlotterStatus(id, cur) {
 }
 
 async function applyBlotterStatus(id) {
-  await dbUpdate(`blotters/${id}`, { status:v('bl-new-stat'), remarks:v('bl-rem') });
+  const newStat = v('bl-new-stat');
+  await dbUpdate(`blotters/${id}`, { status:newStat, remarks:v('bl-rem') });
+  await auditWrite('Update Blotter Status', `Case ${id} → ${newStat}`);
   closeModal(); blotters();
 }
 
 async function deleteBlotter(id) {
   if (!confirm('Delete this blotter record?')) return;
-  await dbRemove(`blotters/${id}`); blotters();
+  await dbRemove(`blotters/${id}`);
+  await auditWrite('Delete Blotter', `Case ID: ${id}`);
+  blotters();
 }
 
 // ════════════════════════════════════════════════
@@ -1620,12 +1884,16 @@ async function saveSummons() {
 }
 
 async function markServed(id) {
-  await dbUpdate(`summons/${id}`, { status:'Served', servedAt:Date.now() }); summons();
+  await dbUpdate(`summons/${id}`, { status:'Served', servedAt:Date.now() });
+  await auditWrite('Summons Served', `Summons ID: ${id}`);
+  summons();
 }
 
 async function deleteSummon(id) {
   if (!confirm('Delete?')) return;
-  await dbRemove(`summons/${id}`); summons();
+  await dbRemove(`summons/${id}`);
+  await auditWrite('Delete Summons', `Summons ID: ${id}`);
+  summons();
 }
 
 // ════════════════════════════════════════════════
@@ -1746,7 +2014,8 @@ async function acceptRegistration(id) {
       religion:    r.religion||'',
       householdId: r.householdId||'',
       address:     r.address||'',
-      contact:     r.contact||''
+      contact:     r.contact||'',
+      photo:       r.photo||null
     });
     await dbUpdate(`requests/${id}`, { status:'Done', remarks:'Accepted — added to residents registry.', processedBy:currentUser.name, processedAt:Date.now() });
     await auditWrite('Accept Registration', `Registered ${r.name}`);
@@ -1811,13 +2080,17 @@ function processRequest(id, cur) {
 }
 
 async function applyRequest(id) {
-  await dbUpdate(`requests/${id}`, { status:v('req-stat'), remarks:v('req-rem'), processedBy:currentUser.name, processedAt:Date.now() });
+  const newStat = v('req-stat');
+  await dbUpdate(`requests/${id}`, { status:newStat, remarks:v('req-rem'), processedBy:currentUser.name, processedAt:Date.now() });
+  await auditWrite('Process Request', `Request ${id} → ${newStat}`);
   closeModal(); requests();
 }
 
 async function deleteRequest(id) {
   if (!confirm('Delete this request?')) return;
-  await dbRemove(`requests/${id}`); requests();
+  await dbRemove(`requests/${id}`);
+  await auditWrite('Delete Request', `Request ID: ${id}`);
+  requests();
 }
 
 // ════════════════════════════════════════════════
@@ -1836,59 +2109,430 @@ async function healthRecords() {
       <button class="btn btn-primary" onclick="openAddHealthRecord()">Add Record</button>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap"><table>
-      <thead><tr><th>Resident</th><th>Visit Date</th><th>BP</th><th>Weight</th><th>Temp</th><th>Chief Complaint</th><th>Actions</th></tr></thead>
+      <thead><tr><th>Resident</th><th>Visit Date</th><th>BP</th><th>Chief Complaint</th><th>Wound Care</th><th>Hospitalized</th><th>Actions</th></tr></thead>
       <tbody>
         ${items.length ? items.map(h=>{const r=resMap[h.residentId]||{}; return `<tr>
           <td><strong>${r.firstName||'—'} ${r.lastName||''}</strong></td>
-          <td>${h.visitDate||'—'}</td><td>${h.bp||'—'}</td>
-          <td>${h.weight?h.weight+' kg':'—'}</td><td>${h.temp?h.temp+'°C':'—'}</td>
-          <td style="max-width:135px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.complaint||'—'}</td>
-          <td><button class="btn btn-danger btn-sm" onclick="deleteHealthRecord('${h.id}')">Delete</button></td>
+          <td>${h.visitDate||'—'}</td>
+          <td>${h.bp||'—'}</td>
+          <td style="max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${h.complaint||'—'}</td>
+          <td>${h.woundCare ? `<span class="badge badge-yellow">${h.woundCare}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+          <td>${h.hospitalized==='Yes' ? `<span class="badge badge-red">Referred</span>` : '<span style="color:var(--text3)">No</span>'}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-ghost btn-sm" onclick="viewHealthRecord('${h.id}')">View</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteHealthRecord('${h.id}')">Delete</button>
+          </td>
         </tr>`; }).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">—</div>No health records yet.</div></td></tr>`}
       </tbody>
     </table></div></div>`;
 }
 
-function openAddHealthRecord() {
-  openModal('Add Health Record', `
+function healthRecordForm(d={}) {
+  const dateSel = (prefix, val='') => {
+    const parts = (val||'').split('-');
+    const yy=parts[0]||'', mm=parts[1]||'', dd=parts[2]||'';
+    const sel = `padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none;width:100%`;
+    const days   = Array.from({length:31},(_,i)=>`<option value="${String(i+1).padStart(2,'0')}" ${String(i+1).padStart(2,'0')===dd?'selected':''}>${i+1}</option>`).join('');
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'].map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}" ${String(i+1).padStart(2,'0')===mm?'selected':''}>${m}</option>`).join('');
+    const curY   = new Date().getFullYear();
+    const years  = Array.from({length:5},(_,i)=>`<option value="${curY-i}" ${String(curY-i)===yy?'selected':''}>${curY-i}</option>`).join('');
+    return `<div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
+      <select id="${prefix}-dd" style="${sel}" onchange="syncDate('${prefix}')"><option value="">Day</option>${days}</select>
+      <select id="${prefix}-mm" style="${sel}" onchange="syncDate('${prefix}')"><option value="">Month</option>${months}</select>
+      <select id="${prefix}-yy" style="${sel}" onchange="syncDate('${prefix}')"><option value="">Year</option>${years}</select>
+    </div><input type="hidden" id="${prefix}" value="${val}">`;
+  };
+  return `
     <div class="form-group"><label>Resident *</label><select id="h-res"><option value="">Select…</option>${_cache._resOpts||''}</select></div>
-    <div class="form-group">
-      <label>Visit Date *</label>
-      <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
-        <select id="h-date-dd" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('h-date')"><option value="">Day</option><option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option></select>
-        <select id="h-date-mm" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('h-date')"><option value="">Month</option><option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select>
-        <select id="h-date-yy" style='padding:10px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;width:100%' onchange="syncDate('h-date')"><option value="">Year</option><option value="2027">2027</option><option value="2026">2026</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option><option value="2019">2019</option><option value="2018">2018</option><option value="2017">2017</option><option value="2016">2016</option></select>
-      </div>
-      <input type="hidden" id="h-date">
-    </div>
+    <div class="form-group"><label>Visit Date *</label>${dateSel('h-date', d.visitDate||'')}</div>
     <div class="grid-3">
-      <div class="form-group"><label>Blood Pressure</label><input type="text" id="h-bp" placeholder="120/80"></div>
-      <div class="form-group"><label>Weight (kg)</label><input type="number" id="h-weight" step="0.1"></div>
-      <div class="form-group"><label>Height (cm)</label><input type="number" id="h-height"></div>
+      <div class="form-group"><label>Blood Pressure</label><input type="text" id="h-bp" value="${d.bp||''}" placeholder="120/80"></div>
+      <div class="form-group"><label>Weight (kg)</label><input type="number" id="h-weight" value="${d.weight||''}" step="0.1"></div>
+      <div class="form-group"><label>Height (cm)</label><input type="number" id="h-height" value="${d.height||''}"></div>
     </div>
     <div class="grid-2">
-      <div class="form-group"><label>Temperature (°C)</label><input type="number" id="h-temp" step="0.1" placeholder="36.5"></div>
-      <div class="form-group"><label>Pulse Rate (bpm)</label><input type="number" id="h-pulse"></div>
+      <div class="form-group"><label>Temperature (°C)</label><input type="number" id="h-temp" value="${d.temp||''}" step="0.1" placeholder="36.5"></div>
+      <div class="form-group"><label>Pulse Rate (bpm)</label><input type="number" id="h-pulse" value="${d.pulse||''}"></div>
     </div>
-    <div class="form-group"><label>Chief Complaint</label><input type="text" id="h-comp" placeholder="Main reason for visit"></div>
-    <div class="form-group"><label>Assessment / Notes</label><textarea id="h-notes"></textarea></div>
-    <div id="h-err" class="alert alert-error" style="display:none"></div>`,
-  [{ label:'Cancel',cls:'btn-ghost',action:'closeModal()' },{ label:'Save',cls:'btn-primary',action:'saveHealthRecord()' }]);
+    <div class="form-group"><label>Chief Complaint</label><input type="text" id="h-comp" value="${d.complaint||''}" placeholder="Main reason for visit"></div>
+    <div class="form-group"><label>Assessment / Notes</label><textarea id="h-notes">${d.notes||''}</textarea></div>
+
+    <div style="border-top:1px solid var(--border);margin:14px 0 12px;padding-top:12px">
+      <div style="font-weight:600;font-size:.85rem;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Wound Care</div>
+      <div class="form-group"><label>Wound Care Performed</label>
+        <select id="h-wound" onchange="toggleWoundDetails()">
+          <option value="">None / Not applicable</option>
+          <option value="Wound Cleaning" ${d.woundCare==='Wound Cleaning'?'selected':''}>Wound Cleaning</option>
+          <option value="Wound Dressing" ${d.woundCare==='Wound Dressing'?'selected':''}>Wound Dressing</option>
+          <option value="Wound Cleaning + Dressing" ${d.woundCare==='Wound Cleaning + Dressing'?'selected':''}>Wound Cleaning + Dressing</option>
+          <option value="Suturing / Stitching" ${d.woundCare==='Suturing / Stitching'?'selected':''}>Suturing / Stitching</option>
+          <option value="Debridement" ${d.woundCare==='Debridement'?'selected':''}>Debridement</option>
+          <option value="Dressing Change" ${d.woundCare==='Dressing Change'?'selected':''}>Dressing Change (Follow-up)</option>
+        </select>
+      </div>
+      <div id="wound-details-wrap" style="display:${d.woundCare?'block':'none'}">
+        <div class="grid-2">
+          <div class="form-group"><label>Wound Location</label><input type="text" id="h-wound-loc" value="${d.woundLocation||''}" placeholder="e.g. Left forearm, Right knee"></div>
+          <div class="form-group"><label>Wound Size</label><input type="text" id="h-wound-size" value="${d.woundSize||''}" placeholder="e.g. 3cm laceration"></div>
+        </div>
+        <div class="form-group"><label>Wound Description</label><input type="text" id="h-wound-desc" value="${d.woundDesc||''}" placeholder="e.g. Clean, contaminated, infected…"></div>
+        <div class="form-group"><label>Materials Used</label><input type="text" id="h-wound-mat" value="${d.woundMaterials||''}" placeholder="e.g. Povidone iodine, gauze, suture 3-0 nylon"></div>
+        <div class="form-group"><label>Wound Care Notes</label><textarea id="h-wound-notes" placeholder="Additional wound care instructions…">${d.woundNotes||''}</textarea></div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:14px 0 12px;padding-top:12px">
+      <div style="font-weight:600;font-size:.85rem;color:var(--red);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Hospitalization</div>
+      <div class="form-group"><label>Needs Hospital Referral?</label>
+        <select id="h-hosp" onchange="toggleHospDetails()">
+          <option value="No" ${(d.hospitalized||'No')==='No'?'selected':''}>No — managed at barangay</option>
+          <option value="Yes" ${d.hospitalized==='Yes'?'selected':''}>Yes — referred to hospital</option>
+        </select>
+      </div>
+      <div id="hosp-details-wrap" style="display:${d.hospitalized==='Yes'?'block':'none'}">
+        <div class="grid-2">
+          <div class="form-group"><label>Hospital / Facility</label><input type="text" id="h-hosp-name" value="${d.hospName||''}" placeholder="e.g. Pototan District Hospital"></div>
+          <div class="form-group"><label>Reason for Referral</label><input type="text" id="h-hosp-reason" value="${d.hospReason||''}" placeholder="e.g. Requires surgery, IV antibiotics"></div>
+        </div>
+        <div class="form-group"><label>Referral Notes</label><textarea id="h-hosp-notes" placeholder="Additional referral instructions…">${d.hospNotes||''}</textarea></div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:14px 0 12px;padding-top:12px">
+      <div style="font-weight:600;font-size:.85rem;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Medications Given</div>
+      <div id="h-meds-list"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addMedRow('h-meds-list')" style="margin-top:4px">+ Add Medication</button>
+      <div style="font-size:.73rem;color:var(--text3);margin-top:5px">List all medicines dispensed or prescribed during this visit.</div>
+    </div>
+    <div id="h-err" class="alert alert-error" style="display:none"></div>`;
+}
+
+function toggleWoundDetails() {
+  const val = v('h-wound');
+  const wrap = eid('wound-details-wrap');
+  if (wrap) wrap.style.display = val ? 'block' : 'none';
+}
+function toggleHospDetails() {
+  const val = v('h-hosp');
+  const wrap = eid('hosp-details-wrap');
+  if (wrap) wrap.style.display = val === 'Yes' ? 'block' : 'none';
+}
+
+function openAddHealthRecord() {
+  openModal('Add Health Record', healthRecordForm(), [
+    { label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
+    { label:'Save Record', cls:'btn-primary', action:'saveHealthRecord()' }
+  ]);
+}
+
+async function viewHealthRecord(id) {
+  const all = await dbList('healthRecords');
+  const h = all.find(x=>x.id===id); if (!h) return;
+  const resList = _cache.residents || await dbList('residents');
+  const r = resList.find(x=>x.id===h.residentId)||{};
+  openModal(`Health Record — ${r.firstName||'?'} ${r.lastName||''}`, `
+    <div class="info-row"><span class="info-label">Resident</span><span class="info-value"><strong>${r.firstName||'—'} ${r.lastName||''}</strong></span></div>
+    <div class="info-row"><span class="info-label">Visit Date</span><span class="info-value">${h.visitDate||'—'}</span></div>
+    <div class="info-row"><span class="info-label">BP</span><span class="info-value">${h.bp||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Weight</span><span class="info-value">${h.weight?h.weight+' kg':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Height</span><span class="info-value">${h.height?h.height+' cm':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Temperature</span><span class="info-value">${h.temp?h.temp+'°C':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Pulse</span><span class="info-value">${h.pulse?h.pulse+' bpm':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Chief Complaint</span><span class="info-value">${h.complaint||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Assessment</span><span class="info-value">${h.notes||'—'}</span></div>
+    ${h.woundCare ? `
+    <div style="border-top:1px solid var(--border);margin:10px 0 8px;padding-top:8px;font-weight:600;font-size:.82rem;color:var(--accent)">Wound Care</div>
+    <div class="info-row"><span class="info-label">Procedure</span><span class="info-value"><span class="badge badge-yellow">${h.woundCare}</span></span></div>
+    <div class="info-row"><span class="info-label">Location</span><span class="info-value">${h.woundLocation||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Size</span><span class="info-value">${h.woundSize||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Description</span><span class="info-value">${h.woundDesc||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Materials</span><span class="info-value">${h.woundMaterials||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Notes</span><span class="info-value">${h.woundNotes||'—'}</span></div>` : ''}
+    ${h.hospitalized==='Yes' ? `
+    <div style="border-top:1px solid var(--border);margin:10px 0 8px;padding-top:8px;font-weight:600;font-size:.82rem;color:var(--red)">Hospital Referral</div>
+    <div class="info-row"><span class="info-label">Facility</span><span class="info-value"><strong>${h.hospName||'—'}</strong></span></div>
+    <div class="info-row"><span class="info-label">Reason</span><span class="info-value">${h.hospReason||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Notes</span><span class="info-value">${h.hospNotes||'—'}</span></div>` : ''}
+    <div style="border-top:1px solid var(--border);margin:10px 0 8px;padding-top:8px;font-weight:600;font-size:.82rem;color:var(--text2)">Medications Given</div>
+    <div style="margin-bottom:8px">${medsHtml(h.medications)}</div>
+    <div class="info-row" style="margin-top:8px"><span class="info-label">Recorded By</span><span class="info-value">${h.recordedBy||'—'}</span></div>`,
+  [{ label:'Close', cls:'btn-ghost', action:'closeModal()' }]);
+}
+
+function addMedRow(listId, med={}) {
+  const wrap = eid(listId); if (!wrap) return;
+  const idx = wrap.children.length;
+  const row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:start';
+  row.innerHTML = `
+    <input type="text" placeholder="Medicine name (e.g. Amoxicillin 500mg)" value="${med.name||''}" style="padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;width:100%">
+    <input type="text" placeholder="Dose (e.g. 1 tab)" value="${med.dose||''}" style="padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;width:100%">
+    <input type="text" placeholder="Frequency (e.g. 3x/day)" value="${med.freq||''}" style="padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;width:100%">
+    <button type="button" onclick="this.parentElement.remove()" style="padding:9px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--red);cursor:pointer;font-size:.85rem">✕</button>`;
+  wrap.appendChild(row);
+}
+function getMeds(listId) {
+  const wrap = eid(listId); if (!wrap) return [];
+  return Array.from(wrap.children).map(row => {
+    const inputs = row.querySelectorAll('input');
+    return { name: inputs[0]?.value||'', dose: inputs[1]?.value||'', freq: inputs[2]?.value||'' };
+  }).filter(m => m.name.trim());
+}
+function medsHtml(meds) {
+  if (!meds || !meds.length) return '<span style="color:var(--text3)">None recorded</span>';
+  return `<table style="width:100%;font-size:.83rem;border-collapse:collapse">
+    <thead><tr style="color:var(--text2);font-size:.75rem;text-transform:uppercase">
+      <th style="text-align:left;padding:4px 8px">Medicine</th>
+      <th style="text-align:left;padding:4px 8px">Dose</th>
+      <th style="text-align:left;padding:4px 8px">Frequency</th>
+    </tr></thead>
+    <tbody>${meds.map(m=>`<tr style="border-top:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${m.name||'—'}</td>
+      <td style="padding:5px 8px">${m.dose||'—'}</td>
+      <td style="padding:5px 8px">${m.freq||'—'}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
 }
 
 async function saveHealthRecord() {
   const resId=v('h-res'), date=v('h-date');
   if (!resId||!date) { setErr('h-err','Select a resident and visit date.'); return; }
+  const woundCare = v('h-wound');
+  const hospitalized = v('h-hosp') || 'No';
   try {
-    await dbPush('healthRecords', { residentId:resId, visitDate:date, bp:v('h-bp'), weight:v('h-weight'), height:v('h-height'), temp:v('h-temp'), pulse:v('h-pulse'), complaint:v('h-comp'), notes:v('h-notes'), recordedBy:currentUser.name });
-    closeModal(); healthRecords();
+    await dbPush('healthRecords', {
+      residentId:resId, visitDate:date,
+      bp:v('h-bp'), weight:v('h-weight'), height:v('h-height'),
+      temp:v('h-temp'), pulse:v('h-pulse'),
+      complaint:v('h-comp'), notes:v('h-notes'),
+      // Wound care
+      woundCare, woundLocation:v('h-wound-loc'), woundSize:v('h-wound-size'),
+      woundDesc:v('h-wound-desc'), woundMaterials:v('h-wound-mat'), woundNotes:v('h-wound-notes'),
+      // Hospitalization
+      hospitalized, hospName:v('h-hosp-name'), hospReason:v('h-hosp-reason'), hospNotes:v('h-hosp-notes'),
+      // Medications
+      medications: getMeds('h-meds-list'),
+      recordedBy:currentUser.name
+    });
+    const resList2 = _cache.residents || await dbList('residents');
+    const rr = resList2.find(x=>x.id===resId)||{};
+    await auditWrite('Health Record', `${rr.firstName||'?'} ${rr.lastName||''} — ${v('h-comp')||'visit'}${woundCare?' | Wound: '+woundCare:''}${hospitalized==='Yes'?' | Referred to hospital':''}`);
+    closeModal(); showToast('Health record saved.'); healthRecords();
   } catch(e) { setErr('h-err', e.message); }
 }
 
 async function deleteHealthRecord(id) {
-  if (!confirm('Delete?')) return;
-  await dbRemove(`healthRecords/${id}`); healthRecords();
+  if (!confirm('Delete this health record?')) return;
+  await dbRemove(`healthRecords/${id}`);
+  await auditWrite('Delete Health Record', `Record ID: ${id}`);
+  healthRecords();
 }
+
+// ════════════════════════════════════════════════
+// WALK-IN / NON-RESIDENT CARE
+// ════════════════════════════════════════════════
+async function walkinCare(page=1) {
+  const items = (await dbList('walkinRecords')).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const { items:rows, page:pg, pages } = paginate(items, page);
+  eid('main-content').innerHTML = `
+    <div class="page-header-row">
+      <div>
+        <div class="page-title">Walk-in / Non-Resident Care</div>
+        <div class="page-sub">${items.length} record(s) — tourists, visitors, passersby</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="export-btn" onclick="exportWalkin()">⬇ Export CSV</button>
+        <button class="btn btn-primary" onclick="openAddWalkin()">New Walk-in Record</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>Name / Description</th><th>Age</th><th>Date</th><th>Chief Complaint</th><th>Wound Care</th><th>Hospitalized</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${rows.length ? rows.map(w=>`<tr>
+          <td>
+            <strong>${w.name||'Unknown'}</strong>
+            ${w.patientType ? `<br><span class="badge badge-blue" style="font-size:.68rem">${w.patientType}</span>` : ''}
+          </td>
+          <td>${w.age||'—'}</td>
+          <td>${w.visitDate||'—'}</td>
+          <td style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${w.complaint||'—'}</td>
+          <td>${w.woundCare ? `<span class="badge badge-yellow">${w.woundCare}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+          <td>${w.hospitalized==='Yes' ? `<span class="badge badge-red">Referred</span>` : '<span style="color:var(--text3)">No</span>'}</td>
+          <td style="white-space:nowrap">
+            <button class="btn btn-ghost btn-sm" onclick="viewWalkin('${w.id}')">View</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteWalkin('${w.id}')">Delete</button>
+          </td>
+        </tr>`).join('') : `<tr><td colspan="7"><div class="empty-state"><div class="emoji">—</div>No walk-in records yet.</div></td></tr>`}
+      </tbody>
+    </table></div>
+    ${paginationHtml(pg, pages, 'walkinCare')}
+    </div>`;
+}
+
+function openAddWalkin() {
+  openModal('New Walk-in / Non-Resident Record', `
+    <div class="alert alert-info" style="margin-bottom:14px">For tourists, visitors, or anyone without a resident record. Name is optional if patient is unconscious/unknown.</div>
+    <div class="grid-2">
+      <div class="form-group"><label>Name <span style="color:var(--text3);font-weight:400">(if known)</span></label><input type="text" id="w-name" placeholder="Full name or 'Unknown Male'"></div>
+      <div class="form-group"><label>Patient Type</label>
+        <select id="w-type">
+          <option value="Tourist">Tourist</option>
+          <option value="Visitor">Visitor</option>
+          <option value="Passerby">Passerby</option>
+          <option value="Accident Victim">Accident Victim</option>
+          <option value="Unknown">Unknown</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="form-group"><label>Age <span style="color:var(--text3)">(approx.)</span></label><input type="text" id="w-age" placeholder="e.g. 35, or ~40"></div>
+      <div class="form-group"><label>Sex</label>
+        <select id="w-sex"><option value="">Unknown</option><option>Male</option><option>Female</option></select>
+      </div>
+      <div class="form-group"><label>Visit Date *</label><input type="date" id="w-date" value="${new Date().toISOString().split('T')[0]}"></div>
+    </div>
+    <div class="form-group"><label>Address / Origin <span style="color:var(--text3)">(if known)</span></label><input type="text" id="w-address" placeholder="e.g. Tourist from Cebu, No fixed address"></div>
+    <div class="form-group"><label>Contact / Next of Kin <span style="color:var(--text3)">(if known)</span></label><input type="text" id="w-contact" placeholder="Phone number or companion name"></div>
+
+    <div class="grid-3" style="margin-top:4px">
+      <div class="form-group"><label>Blood Pressure</label><input type="text" id="w-bp" placeholder="120/80"></div>
+      <div class="form-group"><label>Temperature (°C)</label><input type="number" id="w-temp" step="0.1" placeholder="36.5"></div>
+      <div class="form-group"><label>Pulse (bpm)</label><input type="number" id="w-pulse"></div>
+    </div>
+    <div class="form-group"><label>Chief Complaint *</label><input type="text" id="w-comp" placeholder="Main reason / what happened"></div>
+    <div class="form-group"><label>Assessment / Notes</label><textarea id="w-notes" placeholder="Findings, treatment given, condition on arrival…"></textarea></div>
+
+    <div style="border-top:1px solid var(--border);margin:14px 0 12px;padding-top:12px">
+      <div style="font-weight:600;font-size:.85rem;color:var(--accent);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Wound Care</div>
+      <div class="form-group"><label>Wound Care Performed</label>
+        <select id="w-wound" onchange="toggleWalkinWound()">
+          <option value="">None / Not applicable</option>
+          <option value="Wound Cleaning">Wound Cleaning</option>
+          <option value="Wound Dressing">Wound Dressing</option>
+          <option value="Wound Cleaning + Dressing">Wound Cleaning + Dressing</option>
+          <option value="Suturing / Stitching">Suturing / Stitching</option>
+          <option value="Debridement">Debridement</option>
+          <option value="Dressing Change">Dressing Change (Follow-up)</option>
+        </select>
+      </div>
+      <div id="w-wound-wrap" style="display:none">
+        <div class="grid-2">
+          <div class="form-group"><label>Wound Location</label><input type="text" id="w-wound-loc" placeholder="e.g. Left forearm"></div>
+          <div class="form-group"><label>Wound Size</label><input type="text" id="w-wound-size" placeholder="e.g. 3cm laceration"></div>
+        </div>
+        <div class="form-group"><label>Materials Used</label><input type="text" id="w-wound-mat" placeholder="e.g. Povidone iodine, gauze, suture 3-0"></div>
+        <div class="form-group"><label>Wound Notes</label><textarea id="w-wound-notes" placeholder="Additional notes…"></textarea></div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:14px 0 12px;padding-top:12px">
+      <div style="font-weight:600;font-size:.85rem;color:var(--red);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Hospitalization</div>
+      <div class="form-group"><label>Needs Hospital Referral?</label>
+        <select id="w-hosp" onchange="toggleWalkinHosp()">
+          <option value="No">No — managed at barangay</option>
+          <option value="Yes">Yes — referred to hospital</option>
+        </select>
+      </div>
+      <div id="w-hosp-wrap" style="display:none">
+        <div class="grid-2">
+          <div class="form-group"><label>Hospital / Facility</label><input type="text" id="w-hosp-name" placeholder="e.g. Pototan District Hospital"></div>
+          <div class="form-group"><label>Reason for Referral</label><input type="text" id="w-hosp-reason" placeholder="e.g. Requires surgery"></div>
+        </div>
+        <div class="form-group"><label>Referral Notes</label><textarea id="w-hosp-notes"></textarea></div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:14px 0 12px;padding-top:12px">
+      <div style="font-weight:600;font-size:.85rem;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Medications Given</div>
+      <div id="w-meds-list"></div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addMedRow('w-meds-list')" style="margin-top:4px">+ Add Medication</button>
+      <div style="font-size:.73rem;color:var(--text3);margin-top:5px">List all medicines dispensed or prescribed during this visit.</div>
+    </div>
+    <div id="w-err" class="alert alert-error" style="display:none"></div>`,
+  [{ label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
+   { label:'Save Record', cls:'btn-primary', action:'saveWalkin()' }]);
+}
+
+function toggleWalkinWound() {
+  const wrap = eid('w-wound-wrap');
+  if (wrap) wrap.style.display = v('w-wound') ? 'block' : 'none';
+}
+function toggleWalkinHosp() {
+  const wrap = eid('w-hosp-wrap');
+  if (wrap) wrap.style.display = v('w-hosp')==='Yes' ? 'block' : 'none';
+}
+
+async function saveWalkin() {
+  const date=v('w-date'), comp=v('w-comp');
+  if (!date||!comp) { setErr('w-err','Visit date and chief complaint are required.'); return; }
+  try {
+    await dbPush('walkinRecords', {
+      name: v('w-name')||'Unknown', patientType:v('w-type'),
+      age:v('w-age'), sex:v('w-sex'), visitDate:date,
+      address:v('w-address'), contact:v('w-contact'),
+      bp:v('w-bp'), temp:v('w-temp'), pulse:v('w-pulse'),
+      complaint:comp, notes:v('w-notes'),
+      woundCare:v('w-wound'), woundLocation:v('w-wound-loc'),
+      woundSize:v('w-wound-size'), woundMaterials:v('w-wound-mat'), woundNotes:v('w-wound-notes'),
+      hospitalized:v('w-hosp')||'No',
+      hospName:v('w-hosp-name'), hospReason:v('w-hosp-reason'), hospNotes:v('w-hosp-notes'),
+      medications: getMeds('w-meds-list'),
+      recordedBy:currentUser.name
+    });
+    await auditWrite('Walk-in Record', `${v('w-name')||'Unknown'} — ${comp}`);
+    closeModal(); showToast('Walk-in record saved.'); walkinCare();
+  } catch(e) { setErr('w-err', e.message); }
+}
+
+async function viewWalkin(id) {
+  const all = await dbList('walkinRecords');
+  const w = all.find(x=>x.id===id); if (!w) return;
+  openModal(`Walk-in: ${w.name||'Unknown'}`, `
+    <div class="info-row"><span class="info-label">Name</span><span class="info-value"><strong>${w.name||'Unknown'}</strong></span></div>
+    <div class="info-row"><span class="info-label">Type</span><span class="info-value"><span class="badge badge-blue">${w.patientType||'—'}</span></span></div>
+    <div class="info-row"><span class="info-label">Age / Sex</span><span class="info-value">${w.age||'—'} / ${w.sex||'Unknown'}</span></div>
+    <div class="info-row"><span class="info-label">Visit Date</span><span class="info-value">${w.visitDate||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Address / Origin</span><span class="info-value">${w.address||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Contact / Next of Kin</span><span class="info-value">${w.contact||'—'}</span></div>
+    <div class="info-row"><span class="info-label">BP</span><span class="info-value">${w.bp||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Temp</span><span class="info-value">${w.temp?w.temp+'°C':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Pulse</span><span class="info-value">${w.pulse?w.pulse+' bpm':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Chief Complaint</span><span class="info-value">${w.complaint||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Assessment</span><span class="info-value">${w.notes||'—'}</span></div>
+    ${w.woundCare ? `
+    <div style="border-top:1px solid var(--border);margin:10px 0 8px;padding-top:8px;font-weight:600;font-size:.82rem;color:var(--accent)">Wound Care</div>
+    <div class="info-row"><span class="info-label">Procedure</span><span class="info-value"><span class="badge badge-yellow">${w.woundCare}</span></span></div>
+    <div class="info-row"><span class="info-label">Location</span><span class="info-value">${w.woundLocation||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Size</span><span class="info-value">${w.woundSize||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Materials</span><span class="info-value">${w.woundMaterials||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Notes</span><span class="info-value">${w.woundNotes||'—'}</span></div>` : ''}
+    ${w.hospitalized==='Yes' ? `
+    <div style="border-top:1px solid var(--border);margin:10px 0 8px;padding-top:8px;font-weight:600;font-size:.82rem;color:var(--red)">Hospital Referral</div>
+    <div class="info-row"><span class="info-label">Facility</span><span class="info-value"><strong>${w.hospName||'—'}</strong></span></div>
+    <div class="info-row"><span class="info-label">Reason</span><span class="info-value">${w.hospReason||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Notes</span><span class="info-value">${w.hospNotes||'—'}</span></div>` : ''}
+    <div style="border-top:1px solid var(--border);margin:10px 0 8px;padding-top:8px;font-weight:600;font-size:.82rem;color:var(--text2)">Medications Given</div>
+    <div style="margin-bottom:8px">${medsHtml(w.medications)}</div>
+    <div class="info-row" style="margin-top:8px"><span class="info-label">Recorded By</span><span class="info-value">${w.recordedBy||'—'}</span></div>`,
+  [{ label:'Close', cls:'btn-ghost', action:'closeModal()' }]);
+}
+
+async function deleteWalkin(id) {
+  if (!confirm('Delete this walk-in record?')) return;
+  await dbRemove(`walkinRecords/${id}`);
+  await auditWrite('Delete Walk-in Record', `Record ID: ${id}`);
+  walkinCare();
+}
+
+async function exportWalkin() {
+  const all = (await dbList('walkinRecords')).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  exportCSV('walkin-records.csv',
+    ['Name','Type','Age','Sex','Visit Date','Address','Contact','BP','Temp','Pulse','Chief Complaint','Wound Care','Wound Location','Hospitalized','Hospital','Referral Reason','Recorded By'],
+    all.map(w=>[w.name,w.patientType,w.age,w.sex,w.visitDate,w.address,w.contact,w.bp,w.temp,w.pulse,w.complaint,w.woundCare,w.woundLocation,w.hospitalized,w.hospName,w.hospReason,w.recordedBy])
+  );
+}
+
+
 
 // ════════════════════════════════════════════════
 // VACCINATION
@@ -1958,14 +2602,19 @@ async function saveVaccine() {
   const resId=v('v-res'),vacc=v('v-vacc'),date=v('v-date');
   if (!resId||!vacc||!date) { setErr('v-err','Fill required fields.'); return; }
   try {
+    const resList = _cache.residents || await dbList('residents');
+    const r = resList.find(x=>x.id===resId)||{};
     await dbPush('vaccines', { residentId:resId, vaccine:vacc, dose:v('v-dose'), dateGiven:date, nextDue:v('v-next'), adminBy:v('v-admin'), remarks:v('v-rem') });
+    await auditWrite('Vaccination', `${r.firstName||'?'} ${r.lastName||''} — ${vacc} ${v('v-dose')||''}`);
     closeModal(); vaccines();
   } catch(e) { setErr('v-err', e.message); }
 }
 
 async function deleteVaccine(id) {
   if (!confirm('Delete?')) return;
-  await dbRemove(`vaccines/${id}`); vaccines();
+  await dbRemove(`vaccines/${id}`);
+  await auditWrite('Delete Vaccination', `Record ID: ${id}`);
+  vaccines();
 }
 
 // ════════════════════════════════════════════════
@@ -2043,22 +2692,378 @@ async function saveMaternal() {
   const resId=v('m-res'), date=v('m-date');
   if (!resId||!date) { setErr('m-err','Select patient and visit date.'); return; }
   try {
+    const resList = _cache.residents || await dbList('residents');
+    const r = resList.find(x=>x.id===resId)||{};
     await dbPush('maternal', { residentId:resId, type:v('m-type'), visitDate:date, aog:v('m-aog'), weight:v('m-weight'), bp:v('m-bp'), nextVisit:v('m-next'), status:v('m-stat'), notes:v('m-notes'), recordedBy:currentUser.name });
+    await auditWrite('Maternal Record', `${r.firstName||'?'} ${r.lastName||''} — ${v('m-type')||'visit'}`);
     closeModal(); maternal();
   } catch(e) { setErr('m-err', e.message); }
 }
 
 async function deleteMaternal(id) {
   if (!confirm('Delete?')) return;
-  await dbRemove(`maternal/${id}`); maternal();
+  await dbRemove(`maternal/${id}`);
+  await auditWrite('Delete Maternal Record', `Record ID: ${id}`);
+  maternal();
 }
 
 // ════════════════════════════════════════════════
 // HEALTH EDUCATION
 // ════════════════════════════════════════════════
-function healthEdu() {
+// ════════════════════════════════════════════════
+// FINANCIAL ASSISTANCE LIST (Secretary)
+// ════════════════════════════════════════════════
+async function financialAid(page=1) {
+  const [items, resList] = await Promise.all([dbList('financialAid'), dbList('residents')]);
+  items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const resMap = {}; resList.forEach(r=>{ resMap[r.id]=r; });
+  resList.sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||''));
+  _cache._resOpts = resList.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName}</option>`).join('');
+  const { items:rows, page:pg, pages } = paginate(items, page);
+
   eid('main-content').innerHTML = `
-    <div style="margin-bottom:20px"><div class="page-title">Basic Health Education</div><div class="page-sub">Health awareness programs and community seminars</div></div>
+    <div class="page-header-row">
+      <div>
+        <div class="page-title">Financial Assistance</div>
+        <div class="page-sub">${items.length} record(s) — residents in need of help</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="export-btn" onclick="exportFinancialAid()">Export CSV</button>
+        <button class="btn btn-primary" onclick="openAddFinancialAid()">Add Record</button>
+      </div>
+    </div>
+    <div class="card" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>Resident</th><th>Type of Need</th><th>Status</th><th>Date Added</th><th>Remarks</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${rows.length ? rows.map(f=>{
+          const r = resMap[f.residentId]||{};
+          const name = f.residentId ? `${r.firstName||'?'} ${r.lastName||''}` : (f.name||'—');
+          const statusColor = f.status==='Assisted' ? 'badge-green' : f.status==='Ongoing' ? 'badge-yellow' : 'badge-red';
+          return `<tr>
+            <td><strong>${name}</strong>${r.address?`<br><span style="font-size:.75rem;color:var(--text3)">${r.address}</span>`:''}</td>
+            <td>${f.needType||'—'}</td>
+            <td><span class="badge ${statusColor}">${f.status||'Pending'}</span></td>
+            <td>${f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-PH') : '—'}</td>
+            <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.remarks||'—'}</td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-ghost btn-sm" onclick="viewFinancialAid('${f.id}')">View</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteFinancialAid('${f.id}')">Delete</button>
+            </td>
+          </tr>`;
+        }).join('') : `<tr><td colspan="6"><div class="empty-state"><div class="emoji">—</div>No records yet.</div></td></tr>`}
+      </tbody>
+    </table></div>
+    ${paginationHtml(pg, pages, 'financialAid')}
+    </div>`;
+}
+
+function openAddFinancialAid() {
+  openModal('Add Financial Assistance Record', `
+    <div class="form-group"><label>Resident</label>
+      <select id="fa-res" onchange="toggleFaName()">
+        <option value="">— Select resident (or enter manually below) —</option>
+        ${_cache._resOpts||''}
+      </select>
+    </div>
+    <div class="form-group" id="fa-name-wrap">
+      <label>Name <span style="color:var(--text3);font-weight:400">(if not in resident list)</span></label>
+      <input type="text" id="fa-name" placeholder="Full name">
+    </div>
+    <div class="form-group"><label>Type of Need *</label>
+      <select id="fa-type">
+        <option value="">— Select type —</option>
+        <option value="Medical Assistance">Medical Assistance</option>
+        <option value="Food Assistance">Food Assistance</option>
+        <option value="Financial Aid">Financial Aid (Cash)</option>
+        <option value="Educational Aid">Educational Aid</option>
+        <option value="Livelihood Support">Livelihood Support</option>
+        <option value="Burial Assistance">Burial Assistance</option>
+        <option value="Calamity Relief">Calamity Relief</option>
+        <option value="Senior Citizen Benefit">Senior Citizen Benefit</option>
+        <option value="PWD Benefit">PWD Benefit</option>
+        <option value="Solo Parent Benefit">Solo Parent Benefit</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Details / Description *</label>
+      <textarea id="fa-details" placeholder="Describe the situation and what kind of help is needed…"></textarea>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Status</label>
+        <select id="fa-status">
+          <option value="Pending">Pending</option>
+          <option value="Ongoing">Ongoing</option>
+          <option value="Assisted">Assisted</option>
+          <option value="Referred">Referred to DSWD/Agency</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Amount / Value of Aid</label>
+        <input type="text" id="fa-amount" placeholder="e.g. PHP 2,000 / 10kg rice">
+      </div>
+    </div>
+    <div class="form-group"><label>Remarks / Follow-up Notes</label>
+      <textarea id="fa-remarks" placeholder="Updates, follow-up actions needed…"></textarea>
+    </div>
+    <div id="fa-err" class="alert alert-error" style="display:none"></div>`,
+  [{ label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
+   { label:'Save Record', cls:'btn-primary', action:'saveFinancialAid()' }]);
+}
+
+function toggleFaName() {
+  const resId = v('fa-res');
+  const wrap = eid('fa-name-wrap');
+  if (wrap) wrap.style.display = resId ? 'none' : 'block';
+}
+
+async function saveFinancialAid() {
+  const needType = v('fa-type'), details = v('fa-details');
+  if (!needType || !details) { setErr('fa-err', 'Please fill all required fields.'); return; }
+  const resId = v('fa-res');
+  const name  = resId ? '' : v('fa-name');
+  try {
+    await dbPush('financialAid', {
+      residentId: resId||null, name,
+      needType, details,
+      status: v('fa-status')||'Pending',
+      amount: v('fa-amount'),
+      remarks: v('fa-remarks'),
+      addedBy: currentUser.name
+    });
+    await auditWrite('Financial Aid Record', `${needType}${resId?'':' — '+name}`);
+    closeModal(); showToast('Record saved.'); financialAid();
+  } catch(e) { setErr('fa-err', e.message); }
+}
+
+async function viewFinancialAid(id) {
+  const all = await dbList('financialAid');
+  const f = all.find(x=>x.id===id); if (!f) return;
+  const resList = _cache.residents || await dbList('residents');
+  const r = resList.find(x=>x.id===f.residentId)||{};
+  const name = f.residentId ? `${r.firstName||'?'} ${r.lastName||''}` : (f.name||'—');
+  const statusColor = f.status==='Assisted' ? 'badge-green' : f.status==='Ongoing' ? 'badge-yellow' : 'badge-red';
+  openModal(`Assistance Record — ${name}`, `
+    <div class="info-row"><span class="info-label">Name</span><span class="info-value"><strong>${name}</strong></span></div>
+    ${r.address?`<div class="info-row"><span class="info-label">Address</span><span class="info-value">${r.address}</span></div>`:''}
+    <div class="info-row"><span class="info-label">Type of Need</span><span class="info-value"><strong>${f.needType||'—'}</strong></span></div>
+    <div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="badge ${statusColor}">${f.status||'—'}</span></span></div>
+    <div class="info-row"><span class="info-label">Amount / Value</span><span class="info-value">${f.amount||'—'}</span></div>
+    <div style="margin-top:10px;margin-bottom:5px;font-size:.78rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">Details</div>
+    <div style="background:var(--surface2);padding:11px;border-radius:8px;font-size:.85rem;line-height:1.6;margin-bottom:10px">${f.details||'—'}</div>
+    <div class="info-row"><span class="info-label">Remarks</span><span class="info-value">${f.remarks||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Added By</span><span class="info-value">${f.addedBy||'—'}</span></div>`,
+  [{ label:'Close', cls:'btn-ghost', action:'closeModal()' },
+   { label:'Update Status', cls:'btn-primary', action:`updateFaStatus('${id}','${f.status}')` }]);
+}
+
+async function updateFaStatus(id, current) {
+  openModal('Update Status', `
+    <div class="form-group"><label>Status</label>
+      <select id="fa-new-status">
+        ${['Pending','Ongoing','Assisted','Referred to DSWD/Agency'].map(s=>`<option value="${s}" ${s===current?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Remarks / Update Notes</label>
+      <textarea id="fa-update-rem" placeholder="What action was taken?"></textarea>
+    </div>`,
+  [{ label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
+   { label:'Update', cls:'btn-primary', action:`saveAidStatus('${id}')` }]);
+}
+
+async function saveAidStatus(id) {
+  const newStatus = v('fa-new-status');
+  await dbUpdate(`financialAid/${id}`, { status:newStatus, remarks:v('fa-update-rem') });
+  await auditWrite('Financial Aid Status', `Record ${id} → ${newStatus}`);
+  closeModal(); showToast('Status updated.'); financialAid();
+}
+
+async function deleteFinancialAid(id) {
+  if (!confirm('Delete this record?')) return;
+  await dbRemove(`financialAid/${id}`);
+  await auditWrite('Delete Financial Aid', `Record ID: ${id}`);
+  financialAid();
+}
+
+async function exportFinancialAid() {
+  const [all, resList] = await Promise.all([dbList('financialAid'), dbList('residents')]);
+  const resMap = {}; resList.forEach(r=>{ resMap[r.id]=r; });
+  exportCSV('financial-aid.csv',
+    ['Name','Address','Type of Need','Status','Amount/Value','Details','Remarks','Added By','Date'],
+    all.map(f=>{
+      const r = resMap[f.residentId]||{};
+      const name = f.residentId ? `${r.firstName||''} ${r.lastName||''}` : (f.name||'');
+      return [name, r.address||'', f.needType, f.status, f.amount, f.details, f.remarks, f.addedBy, f.createdAt?new Date(f.createdAt).toLocaleDateString('en-PH'):''];
+    })
+  );
+}
+
+// ════════════════════════════════════════════════
+// NUTRITION / FEEDING PROGRAM (Health)
+// ════════════════════════════════════════════════
+async function nutrition(page=1) {
+  const [items, resList] = await Promise.all([dbList('nutritionRecords'), dbList('residents')]);
+  items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const resMap = {}; resList.forEach(r=>{ resMap[r.id]=r; });
+  const under5 = resList.filter(r=>calcAge(r.birthdate)<=5);
+  resList.sort((a,b)=>(a.lastName||'').localeCompare(b.lastName||''));
+  _cache._resOpts = resList.map(r=>`<option value="${r.id}">${r.lastName}, ${r.firstName} (Age ${calcAge(r.birthdate)})</option>`).join('');
+
+  // Summary counts
+  const sam = items.filter(i=>i.status==='SAM').length;
+  const mam = items.filter(i=>i.status==='MAM').length;
+  const normal = items.filter(i=>i.status==='Normal').length;
+  const atRisk = items.filter(i=>i.status==='At Risk').length;
+
+  const { items:rows, page:pg, pages } = paginate(items, page);
+
+  eid('main-content').innerHTML = `
+    <div class="page-header-row">
+      <div>
+        <div class="page-title">Nutrition / Feeding Program</div>
+        <div class="page-sub">${items.length} record(s) — under-5 children: ${under5.length}</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="export-btn" onclick="exportNutrition()">Export CSV</button>
+        <button class="btn btn-primary" onclick="openAddNutrition()">Add Record</button>
+      </div>
+    </div>
+    <div class="stats-grid" style="margin-bottom:16px">
+      <div class="stat-card red"><div class="stat-icon">SAM</div><div class="stat-value">${sam}</div><div class="stat-label">Severe Acute Malnutrition</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">MAM</div><div class="stat-value">${mam}</div><div class="stat-label">Moderate Acute Malnutrition</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">Risk</div><div class="stat-value">${atRisk}</div><div class="stat-label">At Risk / Underweight</div></div>
+      <div class="stat-card green"><div class="stat-icon">OK</div><div class="stat-value">${normal}</div><div class="stat-label">Normal / Well-nourished</div></div>
+    </div>
+    <div class="card" style="padding:0"><div class="table-wrap"><table>
+      <thead><tr><th>Resident</th><th>Age</th><th>Date Weighed</th><th>Weight (kg)</th><th>Height (cm)</th><th>MUAC (cm)</th><th>Status</th><th>In Feeding Program</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${rows.length ? rows.map(n=>{
+          const r = resMap[n.residentId]||{};
+          const statusColor = n.status==='SAM'?'badge-red':n.status==='MAM'||n.status==='At Risk'?'badge-yellow':'badge-green';
+          return `<tr>
+            <td><strong>${r.firstName||'—'} ${r.lastName||''}</strong></td>
+            <td>${r.birthdate ? calcAge(r.birthdate)+' yrs' : '—'}</td>
+            <td>${n.weighDate||'—'}</td>
+            <td>${n.weight||'—'}</td>
+            <td>${n.height||'—'}</td>
+            <td>${n.muac||'—'}</td>
+            <td><span class="badge ${statusColor}">${n.status||'—'}</span></td>
+            <td>${n.feedingProgram==='Yes'?'<span class="badge badge-green">Enrolled</span>':'<span style="color:var(--text3)">No</span>'}</td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-ghost btn-sm" onclick="viewNutrition('${n.id}')">View</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteNutrition('${n.id}')">Delete</button>
+            </td>
+          </tr>`;
+        }).join('') : `<tr><td colspan="9"><div class="empty-state"><div class="emoji">—</div>No nutrition records yet.</div></td></tr>`}
+      </tbody>
+    </table></div>
+    ${paginationHtml(pg, pages, 'nutrition')}
+    </div>`;
+}
+
+function openAddNutrition() {
+  openModal('Add Nutrition Record', `
+    <div class="form-group"><label>Resident *</label>
+      <select id="nt-res"><option value="">Select…</option>${_cache._resOpts||''}</select>
+    </div>
+    <div class="form-group"><label>Date Weighed *</label>
+      <input type="date" id="nt-date" value="${new Date().toISOString().split('T')[0]}">
+    </div>
+    <div class="grid-3">
+      <div class="form-group"><label>Weight (kg) *</label><input type="number" id="nt-weight" step="0.1" placeholder="e.g. 12.5"></div>
+      <div class="form-group"><label>Height (cm)</label><input type="number" id="nt-height" step="0.1" placeholder="e.g. 95"></div>
+      <div class="form-group"><label>MUAC (cm)</label><input type="number" id="nt-muac" step="0.1" placeholder="Mid-upper arm"></div>
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Nutritional Status *</label>
+        <select id="nt-status">
+          <option value="">— Select —</option>
+          <option value="Normal">Normal / Well-nourished</option>
+          <option value="At Risk">At Risk / Underweight</option>
+          <option value="MAM">MAM — Moderate Acute Malnutrition</option>
+          <option value="SAM">SAM — Severe Acute Malnutrition</option>
+          <option value="Overweight">Overweight</option>
+          <option value="Obese">Obese</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Enrolled in Feeding Program?</label>
+        <select id="nt-feeding">
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Supplementary Food Given</label>
+      <input type="text" id="nt-food" placeholder="e.g. Nutribun, Lugaw, Monggo, Vitamins">
+    </div>
+    <div class="form-group"><label>BHW / Health Worker</label>
+      <input type="text" id="nt-bhw" value="${currentUser.name||''}" placeholder="Name of BHW who recorded">
+    </div>
+    <div class="form-group"><label>Notes / Remarks</label>
+      <textarea id="nt-notes" placeholder="Observations, referrals, follow-up…"></textarea>
+    </div>
+    <div id="nt-err" class="alert alert-error" style="display:none"></div>`,
+  [{ label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
+   { label:'Save Record', cls:'btn-primary', action:'saveNutrition()' }]);
+}
+
+async function saveNutrition() {
+  const resId=v('nt-res'), date=v('nt-date'), weight=v('nt-weight'), status=v('nt-status');
+  if (!resId||!date||!weight||!status) { setErr('nt-err','Please fill all required fields.'); return; }
+  try {
+    await dbPush('nutritionRecords', {
+      residentId:resId, weighDate:date,
+      weight, height:v('nt-height'), muac:v('nt-muac'),
+      status, feedingProgram:v('nt-feeding')||'No',
+      foodGiven:v('nt-food'), bhw:v('nt-bhw'),
+      notes:v('nt-notes'), recordedBy:currentUser.name
+    });
+    await auditWrite('Nutrition Record', `Status: ${status}`);
+    closeModal(); showToast('Nutrition record saved.'); nutrition();
+  } catch(e) { setErr('nt-err', e.message); }
+}
+
+async function viewNutrition(id) {
+  const all = await dbList('nutritionRecords');
+  const n = all.find(x=>x.id===id); if (!n) return;
+  const resList = _cache.residents || await dbList('residents');
+  const r = resList.find(x=>x.id===n.residentId)||{};
+  const statusColor = n.status==='SAM'?'badge-red':n.status==='MAM'||n.status==='At Risk'?'badge-yellow':'badge-green';
+  openModal(`Nutrition — ${r.firstName||'?'} ${r.lastName||''}`, `
+    <div class="info-row"><span class="info-label">Resident</span><span class="info-value"><strong>${r.firstName||'—'} ${r.lastName||''}</strong></span></div>
+    <div class="info-row"><span class="info-label">Age</span><span class="info-value">${r.birthdate?calcAge(r.birthdate)+' years old':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Date Weighed</span><span class="info-value">${n.weighDate||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Weight</span><span class="info-value">${n.weight?n.weight+' kg':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Height</span><span class="info-value">${n.height?n.height+' cm':'—'}</span></div>
+    <div class="info-row"><span class="info-label">MUAC</span><span class="info-value">${n.muac?n.muac+' cm':'—'}</span></div>
+    <div class="info-row"><span class="info-label">Status</span><span class="info-value"><span class="badge ${statusColor}">${n.status||'—'}</span></span></div>
+    <div class="info-row"><span class="info-label">Feeding Program</span><span class="info-value">${n.feedingProgram==='Yes'?'<span class="badge badge-green">Enrolled</span>':'Not enrolled'}</span></div>
+    <div class="info-row"><span class="info-label">Food Given</span><span class="info-value">${n.foodGiven||'—'}</span></div>
+    <div class="info-row"><span class="info-label">BHW</span><span class="info-value">${n.bhw||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Notes</span><span class="info-value">${n.notes||'—'}</span></div>
+    <div class="info-row"><span class="info-label">Recorded By</span><span class="info-value">${n.recordedBy||'—'}</span></div>`,
+  [{ label:'Close', cls:'btn-ghost', action:'closeModal()' }]);
+}
+
+async function deleteNutrition(id) {
+  if (!confirm('Delete this nutrition record?')) return;
+  await dbRemove(`nutritionRecords/${id}`);
+  await auditWrite('Delete Nutrition Record', `Record ID: ${id}`);
+  nutrition();
+}
+
+async function exportNutrition() {
+  const [all, resList] = await Promise.all([dbList('nutritionRecords'), dbList('residents')]);
+  const resMap = {}; resList.forEach(r=>{ resMap[r.id]=r; });
+  exportCSV('nutrition-records.csv',
+    ['Name','Age','Date Weighed','Weight (kg)','Height (cm)','MUAC (cm)','Status','Feeding Program','Food Given','BHW','Notes'],
+    all.map(n=>{
+      const r = resMap[n.residentId]||{};
+      return [`${r.firstName||''} ${r.lastName||''}`, r.birthdate?calcAge(r.birthdate):'', n.weighDate, n.weight, n.height, n.muac, n.status, n.feedingProgram, n.foodGiven, n.bhw, n.notes];
+    })
+  );
+}
+
+function healthEdu() {
+  eid('main-content').innerHTML = `<div class="page-sub">Health awareness programs and community seminars</div></div>
     <div class="grid-2" style="gap:13px">
               <div class="card" style="display:flex;gap:13px;align-items:flex-start">
           <div style="width:38px;height:38px;border-radius:9px;background:var(--accent-glow);border:1px solid rgba(46,168,126,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -2228,12 +3233,15 @@ async function submitPublicRequest() {
   btn.innerHTML='<span class="spinner"></span> Submitting…'; btn.disabled=true;
 
   try {
+    const pubPhotoInp = eid('pub-photo');
+    const photo = pubPhotoInp?._compressed || null;
     const data = {
       name: `${fn} ${ln}`,
       firstName: fn, lastName: ln,
       birthday: bday, gender, address: addr,
       contact: v('pub-contact'),
       reqType: reqtype,
+      photo,
       status: 'Pending'
     };
 
@@ -2328,10 +3336,304 @@ async function exportAuditLog() {
   );
 }
 
+// ════════════════════════════════════════════════
+// ANNOUNCEMENTS (Captain — visible on public portal)
+// ════════════════════════════════════════════════
+async function announcements() {
+  const items = (await dbList('announcements')).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  eid('main-content').innerHTML = `
+    <div class="page-header-row">
+      <div>
+        <div class="page-title">Announcements</div>
+        <div class="page-sub">${items.length} post(s) — active ones appear on the public portal</div>
+      </div>
+      <button class="btn btn-primary" onclick="openAddAnnouncement()">Post Announcement</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${items.length ? items.map(a => {
+        const isActive = a.status === 'Active';
+        const isPinned = a.pinned === true;
+        return `
+        <div class="card" style="border-left:3px solid ${isActive ? 'var(--accent)' : 'var(--border)'}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+                ${isPinned ? '<span class="badge badge-yellow" style="font-size:.68rem">Pinned</span>' : ''}
+                <span class="badge ${isActive ? 'badge-green' : 'badge-gray'}" style="font-size:.68rem">${a.status||'Draft'}</span>
+                <span style="font-size:.73rem;color:var(--text3)">${a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'}) : '—'}</span>
+              </div>
+              <div style="font-weight:700;font-size:.97rem;margin-bottom:5px">${a.title||'—'}</div>
+              <div style="font-size:.84rem;color:var(--text2);line-height:1.6;white-space:pre-wrap">${(a.body||'').slice(0,200)}${(a.body||'').length>200?'…':''}</div>
+              ${a.category ? `<div style="margin-top:6px"><span class="badge badge-blue" style="font-size:.68rem">${a.category}</span></div>` : ''}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+              <button class="btn btn-ghost btn-sm" onclick="editAnnouncement('${a.id}')">Edit</button>
+              <button class="btn btn-ghost btn-sm" onclick="toggleAnnouncementStatus('${a.id}','${a.status}')">${isActive ? 'Deactivate' : 'Activate'}</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('') : `<div class="empty-state"><div class="emoji">—</div>No announcements yet. Post one to show it on the public portal.</div>`}
+    </div>`;
+}
+
+function announcementForm(a={}) {
+  const cats = ['General','Health','Event','Emergency','Program','Notice'];
+  return `
+    <div class="form-group"><label>Title *</label>
+      <input type="text" id="ann-title" value="${a.title||''}" placeholder="e.g. Barangay Clean-up Drive this Saturday">
+    </div>
+    <div class="grid-2">
+      <div class="form-group"><label>Category</label>
+        <select id="ann-cat">
+          <option value="">— Select —</option>
+          ${cats.map(c=>`<option value="${c}" ${a.category===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label>Status</label>
+        <select id="ann-status">
+          <option value="Active" ${(a.status||'Active')==='Active'?'selected':''}>Active — visible on portal</option>
+          <option value="Draft" ${a.status==='Draft'?'selected':''}>Draft — hidden from portal</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Message / Body *</label>
+      <textarea id="ann-body" rows="5" placeholder="Write the full announcement here…">${a.body||''}</textarea>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="ann-pinned" ${a.pinned?'checked':''} style="width:15px;height:15px;accent-color:var(--accent)">
+        Pin this announcement (shows at top of public portal)
+      </label>
+    </div>
+    <div id="ann-err" class="alert alert-error" style="display:none"></div>`;
+}
+
+function openAddAnnouncement() {
+  openModal('Post Announcement', announcementForm(), [
+    { label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
+    { label:'Post', cls:'btn-primary', action:'saveAnnouncement()' }
+  ]);
+}
+
+async function editAnnouncement(id) {
+  const all = await dbList('announcements');
+  const a = all.find(x=>x.id===id); if (!a) return;
+  openModal('Edit Announcement', announcementForm(a), [
+    { label:'Cancel', cls:'btn-ghost', action:'closeModal()' },
+    { label:'Save', cls:'btn-primary', action:`saveAnnouncement('${id}')` }
+  ]);
+}
+
+async function saveAnnouncement(id=null) {
+  const title = v('ann-title'), body = v('ann-body');
+  if (!title || !body) { setErr('ann-err','Title and message are required.'); return; }
+  const data = {
+    title, body,
+    category: v('ann-cat'),
+    status: v('ann-status') || 'Active',
+    pinned: eid('ann-pinned')?.checked || false,
+    postedBy: currentUser.name
+  };
+  try {
+    if (id) await dbUpdate(`announcements/${id}`, data);
+    else    await dbPush('announcements', data);
+    await auditWrite('Announcement', `${data.status}: ${title}`);
+    closeModal(); showToast(id ? 'Announcement updated.' : 'Announcement posted.'); announcements();
+  } catch(e) { setErr('ann-err', e.message); }
+}
+
+async function toggleAnnouncementStatus(id, current) {
+  const newStatus = current === 'Active' ? 'Draft' : 'Active';
+  await dbUpdate(`announcements/${id}`, { status: newStatus });
+  await auditWrite('Announcement Status', `ID ${id} → ${newStatus}`);
+  showToast(`Announcement ${newStatus === 'Active' ? 'activated' : 'deactivated'}.`);
+  announcements();
+}
+
+async function deleteAnnouncement(id) {
+  if (!confirm('Delete this announcement?')) return;
+  await dbRemove(`announcements/${id}`);
+  await auditWrite('Delete Announcement', `ID: ${id}`);
+  announcements();
+}
+
+// Load active announcements on public portal
+async function loadPublicAnnouncements() {
+  try {
+    const all = await dbList('announcements');
+    const active = all
+      .filter(a => a.status === 'Active')
+      .sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0) || (b.createdAt||0) - (a.createdAt||0));
+    if (!active.length) return;
+    const wrap = eid('public-announcements-wrap');
+    const list = eid('public-announcements-list');
+    if (!wrap || !list) return;
+    const catColor = { 'Emergency':'badge-red','Health':'badge-green','Event':'badge-blue','Program':'badge-blue','Notice':'badge-yellow','General':'badge-gray' };
+    list.innerHTML = active.map(a=>`
+      <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;flex-wrap:wrap">
+          ${a.pinned ? '<span class="badge badge-yellow" style="font-size:.68rem">Pinned</span>' : ''}
+          ${a.category ? `<span class="badge ${catColor[a.category]||'badge-gray'}" style="font-size:.68rem">${a.category}</span>` : ''}
+          <span style="font-size:.72rem;color:var(--text3)">${a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'}) : ''}</span>
+        </div>
+        <div style="font-weight:700;font-size:.95rem;margin-bottom:5px">${a.title}</div>
+        <div style="font-size:.83rem;color:var(--text2);line-height:1.65;white-space:pre-wrap">${a.body}</div>
+      </div>`).join('');
+    wrap.style.display = 'block';
+  } catch(e) { /* silent fail on public portal */ }
+}
+
+// ════════════════════════════════════════════════
+// SUMMARY REPORT (Captain)
+// ════════════════════════════════════════════════
+async function summaryReport() {
+  eid('main-content').innerHTML = `<div class="page-title" style="margin-bottom:16px">Summary Report</div><div style="color:var(--text2)">Loading data…</div>`;
+  const [residents, households, hhProfiles, certs, clearances, indigency, business,
+         blotters, requests, healthRecs, walkins, vaccines, maternal, nutrition, announcements] =
+    await Promise.all([
+      dbList('residents'), dbList('residents'), dbList('householdProfiles'),
+      dbList('certificates'), dbList('clearances'), dbList('indigency'), dbList('business'),
+      dbList('blotters'), dbList('requests'), dbList('healthRecords'), dbList('walkinRecords'),
+      dbList('vaccines'), dbList('maternal'), dbList('nutritionRecords'), dbList('announcements')
+    ]);
+
+  const totalRes    = residents.length;
+  const male        = residents.filter(r=>r.gender==='Male').length;
+  const female      = residents.filter(r=>r.gender==='Female').length;
+  const seniors     = residents.filter(r=>calcAge(r.birthdate)>=60).length;
+  const youth       = residents.filter(r=>{ const a=calcAge(r.birthdate); return a>=15&&a<=30; }).length;
+  const under5      = residents.filter(r=>calcAge(r.birthdate)<=5).length;
+  const hhMap       = {}; residents.forEach(r=>{ const h=r.householdId||'UNASSIGNED'; hhMap[h]=(hhMap[h]||0)+1; });
+  const totalHH     = Object.keys(hhMap).length;
+  const indigent    = hhProfiles.filter(p=>p.classification==='Indigent'||p.classification==='Poor').length;
+  const is4ps       = hhProfiles.filter(p=>p.is4ps==='Yes').length;
+
+  const pendingReq  = requests.filter(r=>r.status==='Pending').length;
+  const totalDocs   = certs.length + clearances.length + indigency.length + business.length;
+  const openBlotter = blotters.filter(b=>b.status!=='Resolved'&&b.status!=='Dismissed').length;
+
+  const sam         = nutrition.filter(n=>n.status==='SAM').length;
+  const mam         = nutrition.filter(n=>n.status==='MAM').length;
+  const referred    = [...healthRecs,...walkins].filter(h=>h.hospitalized==='Yes').length;
+  const activeAnn   = announcements.filter(a=>a.status==='Active').length;
+
+  const statCard = (label, value, sub='', color='') =>
+    `<div class="stat-card ${color}" style="text-align:center">
+      <div class="stat-value">${value}</div>
+      <div class="stat-label">${label}</div>
+      ${sub ? `<div style="font-size:.72rem;color:var(--text3);margin-top:2px">${sub}</div>` : ''}
+    </div>`;
+
+  const section = (title, content) =>
+    `<div style="margin-bottom:20px">
+      <div style="font-weight:700;font-size:.82rem;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">${title}</div>
+      <div class="stats-grid">${content}</div>
+    </div>`;
+
+  const now = new Date().toLocaleDateString('en-PH',{year:'numeric',month:'long',day:'numeric'});
+
+  eid('main-content').innerHTML = `
+    <div class="page-header-row">
+      <div>
+        <div class="page-title">Summary Report</div>
+        <div class="page-sub">As of ${now}</div>
+      </div>
+      <button class="export-btn" onclick="exportSummaryReport()">Export CSV</button>
+    </div>
+
+    ${section('Population',
+      statCard('Total Residents', totalRes, '', 'blue') +
+      statCard('Male', male, `${totalRes?Math.round(male/totalRes*100):0}%`) +
+      statCard('Female', female, `${totalRes?Math.round(female/totalRes*100):0}%`) +
+      statCard('Senior Citizens', seniors, '60 years & above', 'green') +
+      statCard('Youth', youth, '15–30 years old', 'blue') +
+      statCard('Under 5', under5, 'Children 0–5 yrs', 'yellow')
+    )}
+
+    ${section('Households & Welfare',
+      statCard('Total Households', totalHH, '', 'blue') +
+      statCard('Indigent / Poor HH', indigent, 'Based on classification', 'red') +
+      statCard('4Ps Beneficiaries', is4ps, 'Households enrolled', 'yellow')
+    )}
+
+    ${section('Documents & Requests',
+      statCard('Total Documents Issued', totalDocs, 'Certs + Clearances + Indigency + Business') +
+      statCard('Certificates', certs.length) +
+      statCard('Clearances', clearances.length) +
+      statCard('Indigency Certs', indigency.length) +
+      statCard('Business Clearances', business.length) +
+      statCard('Pending Requests', pendingReq, 'Awaiting processing', pendingReq>0?'red':'green')
+    )}
+
+    ${section('Blotter & Peace & Order',
+      statCard('Total Blotter Cases', blotters.length) +
+      statCard('Open / Unresolved', openBlotter, '', openBlotter>0?'red':'green') +
+      statCard('Resolved', blotters.length - openBlotter, '', 'green')
+    )}
+
+    ${section('Health',
+      statCard('Health Consultations', healthRecs.length) +
+      statCard('Walk-in / Non-Resident', walkins.length) +
+      statCard('Vaccinations Given', vaccines.length) +
+      statCard('Maternal Records', maternal.length) +
+      statCard('SAM Cases', sam, 'Severe Acute Malnutrition', sam>0?'red':'green') +
+      statCard('MAM Cases', mam, 'Moderate Acute Malnutrition', mam>0?'yellow':'green') +
+      statCard('Hospital Referrals', referred, '', referred>0?'yellow':'green')
+    )}
+
+    ${section('Announcements',
+      statCard('Active Announcements', activeAnn, 'Visible on public portal', 'green') +
+      statCard('Total Posted', announcements.length)
+    )}`;
+}
+
+async function exportSummaryReport() {
+  const now = new Date().toLocaleDateString('en-PH');
+  const [residents, hhProfiles, certs, clearances, indigency, business,
+         blotters, requests, healthRecs, walkins, vaccines, maternal, nutrition] =
+    await Promise.all([
+      dbList('residents'), dbList('householdProfiles'),
+      dbList('certificates'), dbList('clearances'), dbList('indigency'), dbList('business'),
+      dbList('blotters'), dbList('requests'), dbList('healthRecords'), dbList('walkinRecords'),
+      dbList('vaccines'), dbList('maternal'), dbList('nutritionRecords')
+    ]);
+  const hhMap = {}; residents.forEach(r=>{ const h=r.householdId||'UNASSIGNED'; hhMap[h]=(hhMap[h]||0)+1; });
+  exportCSV('summary-report.csv',
+    ['Category','Metric','Value','As Of'],
+    [
+      ['Population','Total Residents', residents.length, now],
+      ['Population','Male', residents.filter(r=>r.gender==='Male').length, now],
+      ['Population','Female', residents.filter(r=>r.gender==='Female').length, now],
+      ['Population','Senior Citizens (60+)', residents.filter(r=>calcAge(r.birthdate)>=60).length, now],
+      ['Population','Youth (15-30)', residents.filter(r=>{const a=calcAge(r.birthdate);return a>=15&&a<=30;}).length, now],
+      ['Population','Under 5', residents.filter(r=>calcAge(r.birthdate)<=5).length, now],
+      ['Households','Total Households', Object.keys(hhMap).length, now],
+      ['Households','Indigent / Poor', hhProfiles.filter(p=>p.classification==='Indigent'||p.classification==='Poor').length, now],
+      ['Households','4Ps Enrolled', hhProfiles.filter(p=>p.is4ps==='Yes').length, now],
+      ['Documents','Total Issued', certs.length+clearances.length+indigency.length+business.length, now],
+      ['Documents','Certificates', certs.length, now],
+      ['Documents','Clearances', clearances.length, now],
+      ['Documents','Indigency Certs', indigency.length, now],
+      ['Documents','Business Clearances', business.length, now],
+      ['Requests','Pending', requests.filter(r=>r.status==='Pending').length, now],
+      ['Blotter','Total Cases', blotters.length, now],
+      ['Blotter','Unresolved', blotters.filter(b=>b.status!=='Resolved'&&b.status!=='Dismissed').length, now],
+      ['Health','Consultations', healthRecs.length, now],
+      ['Health','Walk-ins', walkins.length, now],
+      ['Health','Vaccinations', vaccines.length, now],
+      ['Health','SAM Cases', nutrition.filter(n=>n.status==='SAM').length, now],
+      ['Health','MAM Cases', nutrition.filter(n=>n.status==='MAM').length, now],
+      ['Health','Hospital Referrals', [...healthRecs,...walkins].filter(h=>h.hospitalized==='Yes').length, now],
+    ]
+  );
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   eid('public-page').style.display = 'block';
   eid('login-modal').style.display = 'none';
   eid('app').style.display = 'none';
+  loadPublicAnnouncements();
 });
 </script>
 </body>
