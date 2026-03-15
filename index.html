@@ -259,9 +259,24 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="card">
         <div style="font-weight:700;font-size:1rem;margin-bottom:4px">Check Your Request Status</div>
         <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px">Enter your full name and birthday to see the status of your submitted request.</div>
-        <div class="grid-2" style="gap:10px;margin-bottom:10px">
-          <div class="form-group" style="margin:0"><label>Full Name *</label><input type="text" id="chk-name" placeholder="e.g. Juan dela Cruz"></div>
-          <div class="form-group" style="margin:0"><label>Birthday *</label><input type="date" id="chk-bday"></div>
+        <div class="form-group" style="margin-bottom:10px"><label>Full Name *</label><input type="text" id="chk-name" placeholder="e.g. Juan dela Cruz"></div>
+        <div class="form-group" style="margin-bottom:10px">
+          <label>Birthday *</label>
+          <div style="display:grid;grid-template-columns:1fr 1.6fr 1fr;gap:8px">
+            <select id="chk-bday-dd" onchange="syncChkBday()" style="width:100%;padding:11px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+              <option value="">Day</option>
+              <option value="01">1</option><option value="02">2</option><option value="03">3</option><option value="04">4</option><option value="05">5</option><option value="06">6</option><option value="07">7</option><option value="08">8</option><option value="09">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option>
+            </select>
+            <select id="chk-bday-mm" onchange="syncChkBday()" style="width:100%;padding:11px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+              <option value="">Month</option>
+              <option value="01">January</option><option value="02">February</option><option value="03">March</option><option value="04">April</option><option value="05">May</option><option value="06">June</option><option value="07">July</option><option value="08">August</option><option value="09">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+            </select>
+            <select id="chk-bday-yy" onchange="syncChkBday()" style="width:100%;padding:11px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;outline:none">
+              <option value="">Year</option>
+              ${Array.from({length:110},(_,i)=>new Date().getFullYear()-i).map(y=>`<option value="${y}">${y}</option>`).join('')}
+            </select>
+          </div>
+          <input type="hidden" id="chk-bday">
         </div>
         <button class="btn btn-ghost btn-sm" onclick="checkRequestStatus()" style="width:100%">Check Status</button>
         <div id="chk-result" style="margin-top:12px;display:none"></div>
@@ -639,13 +654,13 @@ const BRGY = {
   name:        'Barangay Babag',       // e.g. 'Barangay Poblacion'
   municipality:'Cebu, City',         // e.g. 'Pototan'
   province:    'Cebu',             // e.g. 'Iloilo'
-  captain:     'Gil Gabunada',    // e.g. 'Hon. Juan dela Cruz'
-  secretary:   'Gil Gabunada',  // e.g. 'Maria Santos'
-  skChairman:  'Gil Gabunada', // e.g. 'Jose Reyes'
+  captain:     'Captain Gil Gabunada',    // e.g. 'Hon. Juan dela Cruz'
+  secretary:   '[Secretary Gil Gabunada',  // e.g. 'Maria Santos'
+  skChairman:  '[SK GIl Gabunada', // e.g. 'Jose Reyes'
   logoUrl:     '',                        // paste image URL or base64 here, leave '' for none
   // Certificate footer details
-  contactNo:   '09191234567',                        // barangay contact number
-  email:       'BarangayBabag@gmail.com',                        // barangay email
+  contactNo:   '09199452798',                        // barangay contact number
+  email:       'Barangaybabag@gmail.com',                        // barangay email
 };
 // ════════════════════════════════════════════════
 // ════════════════════════════════════════════════
@@ -4105,6 +4120,14 @@ function syncPubBday() {
   else eid('pub-bday').value = '';
 }
 
+function syncChkBday() {
+  const dd = eid('chk-bday-dd')?.value || '';
+  const mm = eid('chk-bday-mm')?.value || '';
+  const yy = eid('chk-bday-yy')?.value || '';
+  if (dd && mm && yy) eid('chk-bday').value = `${yy}-${mm}-${dd}`;
+  else eid('chk-bday').value = '';
+}
+
 function handleReqTypeChange() {
   const rt = v('pub-reqtype');
   const extraReg   = eid('extra-register');
@@ -4906,10 +4929,22 @@ async function checkRequestStatus() {
   result.style.display = 'block';
   try {
     const all = await dbList('requests');
-    const matches = all.filter(r =>
-      (r.name||'').trim().toLowerCase() === name.toLowerCase() &&
-      (r.birthday||'') === bday
-    ).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    const inputName = name.toLowerCase().replace(/\s+/g, ' ').trim();
+    const inputParts = inputName.split(' ').filter(Boolean);
+
+    const matches = all.filter(r => {
+      if ((r.birthday||'') !== bday) return false;
+      const stored = (r.name||'').toLowerCase().replace(/\s+/g, ' ').trim();
+      // Exact match
+      if (stored === inputName) return true;
+      // All input words appear in stored name (handles partial: "Juan Cruz" finds "Juan dela Cruz")
+      if (inputParts.every(p => stored.includes(p))) return true;
+      // Also check firstName + lastName separately
+      const fn = (r.firstName||'').toLowerCase();
+      const ln = (r.lastName||'').toLowerCase();
+      if (inputParts.every(p => fn.includes(p) || ln.includes(p))) return true;
+      return false;
+    }).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
     if (!matches.length) {
       result.innerHTML = `<div class="alert alert-info">No request found for <strong>${name}</strong> with that birthday. Please check your details or submit a new request.</div>`;
       return;
