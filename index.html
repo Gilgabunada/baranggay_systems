@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Barangay Information Management System</title>
+<script>
+// Apply branding after BRGY config loads
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof BRGY !== 'undefined') {
+    document.title = BRGY.name + ' — Information Management System';
+  }
+});
+</script>
 <!-- Firebase Realtime Database (NOT Firestore) -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -115,6 +123,29 @@
   .extra-fields{display:none;}
   @media(max-width:860px){.public-cards{grid-template-columns:1fr 1fr;}.public-hero{padding:24px 18px 40px;}}
   @media(max-width:560px){.public-cards{grid-template-columns:1fr;}}
+  @media(max-width:900px){
+    .app-layout{flex-direction:column;}
+    .sidebar{width:100%;min-height:auto;flex-direction:row;flex-wrap:wrap;padding:8px 12px;gap:4px;}
+    .sidebar .nav-section{display:none;}
+    .sidebar .nav-item{padding:6px 10px;font-size:.78rem;border-radius:6px;}
+    .logo-wrap{display:none;}
+    .user-info{display:none;}
+    #main-content{padding:14px;}
+    .grid-2,.grid-3{grid-template-columns:1fr!important;}
+    .stats-grid{grid-template-columns:repeat(2,1fr)!important;}
+    .page-header-row{flex-direction:column;align-items:flex-start;gap:10px;}
+    .page-header-row .btn{width:100%;}
+  }
+  @media(max-width:900px){
+    .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .table-wrap table{min-width:600px;}
+    .modal-box{max-width:98vw!important;margin:8px!important;}
+  }
+  @media(max-width:600px){
+    .stats-grid{grid-template-columns:1fr 1fr!important;}
+    .public-form-wrap{padding:0 8px;}
+    #main-content{padding:10px 8px;}
+  }
   .spinner{display:inline-block;width:17px;height:17px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;}
   @keyframes spin{to{transform:rotate(360deg);}}
   .empty-state{text-align:center;padding:38px;color:var(--text3);}
@@ -170,8 +201,8 @@
     <div style="display:flex;align-items:center;gap:11px">
       <div class="logo-icon" style="width:42px;height:42px"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M8 9V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="14.5" x2="15" y2="14.5"/></svg></div>
       <div>
-        <div style="font-family:'DM Serif Display',serif;font-size:1.1rem">Barangay Portal</div>
-        <div style="font-size:.67rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px">Citizen Request System</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:1.1rem" id="brgy-portal-name">Barangay Portal</div>
+        <div style="font-size:.67rem;color:var(--accent);text-transform:uppercase;letter-spacing:1px" id="brgy-portal-sub">Citizen Request System</div>
       </div>
     </div>
     <button class="btn btn-primary btn-sm" onclick="showSplash()" style="gap:8px;padding:10px 20px;font-size:.86rem;font-weight:600">
@@ -553,7 +584,7 @@
     <div class="sidebar">
       <div class="sidebar-logo">
         <div class="logo-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M8 9V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v4"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9" y1="14.5" x2="15" y2="14.5"/></svg></div>
-        <div><div class="logo-text">BIMS</div><div class="logo-sub">Barangay System</div></div>
+        <div><div class="logo-text">BIMS</div><div class="logo-sub" id="brgy-sub">Barangay System</div></div>
       </div>
       <nav class="sidebar-nav" id="main-nav"></nav>
       <div class="sidebar-user">
@@ -587,6 +618,22 @@
 
 <script>
 const EMAILJS_KEY = { publicKey:'C9dVNuBDYs9WPkx9B', serviceId:'service_zdq7qtb', templateId:'template_donk0fw' };
+
+// ════════════════════════════════════════════════
+// BARANGAY CONFIGURATION — Edit these values
+// ════════════════════════════════════════════════
+const BRGY = {
+  name:        'Barangay Babag',       // e.g. 'Barangay Poblacion'
+  municipality:'Cebu, City',         // e.g. 'Pototan'
+  province:    'Cebu',             // e.g. 'Iloilo'
+  captain:     'Gil Gabunada (test)',    // e.g. 'Hon. Juan dela Cruz'
+  secretary:   'Gil Gabunada (test)',  // e.g. 'Maria Santos'
+  logoUrl:     '',                        // paste image URL or base64 here, leave '' for none
+  // Certificate footer details
+  contactNo:   '09199452799',                        // barangay contact number
+  email:       'Barangaybabag@gmail.com',                        // barangay email
+};
+// ════════════════════════════════════════════════
 // ════════════════════════════════════════════════
 // FIREBASE — REALTIME DATABASE
 // ════════════════════════════════════════════════
@@ -1015,13 +1062,100 @@ function navigateTo(page) {
 // DASHBOARD
 // ════════════════════════════════════════════════
 async function dashboard() {
+  const role = currentUser.role;
+
+  if (role === 'health') {
+    const [res, hr, vc, mt, nt, wi] = await Promise.all([
+      dbList('residents'), dbList('healthRecords'), dbList('vaccines'),
+      dbList('maternal'), dbList('nutritionRecords'), dbList('walkinRecords')
+    ]);
+    const sam = nt.filter(n=>n.status==='SAM').length;
+    const mam = nt.filter(n=>n.status==='MAM').length;
+    const referred = [...hr,...wi].filter(h=>h.hospitalized==='Yes').length;
+    const under5 = res.filter(r=>calcAge(r.birthdate)<=5).length;
+    const seniors = res.filter(r=>calcAge(r.birthdate)>=60).length;
+    const recentHr = [...hr,...wi].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,6);
+    eid('main-content').innerHTML = `
+      <div style="margin-bottom:22px">
+        <div class="page-title">Healthcare Dashboard</div>
+        <div class="page-sub">${new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-icon">Consult.</div><div class="stat-value">${hr.length}</div><div class="stat-label">Health Consultations</div></div>
+        <div class="stat-card blue"><div class="stat-icon">Walk-in</div><div class="stat-value">${wi.length}</div><div class="stat-label">Walk-in / Non-Resident</div></div>
+        <div class="stat-card yellow"><div class="stat-icon">Vaccines</div><div class="stat-value">${vc.length}</div><div class="stat-label">Vaccinations Given</div></div>
+        <div class="stat-card purple"><div class="stat-icon">Maternal</div><div class="stat-value">${mt.length}</div><div class="stat-label">Maternal Records</div></div>
+        <div class="stat-card red"><div class="stat-icon">SAM</div><div class="stat-value">${sam}</div><div class="stat-label">SAM Cases</div></div>
+        <div class="stat-card yellow"><div class="stat-icon">MAM</div><div class="stat-value">${mam}</div><div class="stat-label">MAM Cases</div></div>
+        <div class="stat-card red"><div class="stat-icon">Referral</div><div class="stat-value">${referred}</div><div class="stat-label">Hospital Referrals</div></div>
+        <div class="stat-card blue"><div class="stat-icon">Under 5</div><div class="stat-value">${under5}</div><div class="stat-label">Children Under 5</div></div>
+        <div class="stat-card green"><div class="stat-icon">Seniors</div><div class="stat-value">${seniors}</div><div class="stat-label">Senior Citizens</div></div>
+      </div>
+      <div class="card" style="margin-top:4px">
+        <div style="font-weight:600;margin-bottom:13px">Recent Health Activity</div>
+        ${recentHr.length ? recentHr.map(h=>`
+          <div class="info-row">
+            <span class="info-label">${h.residentId ? ((_cache.residents||[]).find(r=>r.id===h.residentId)||{firstName:'?',lastName:''}) && ((_cache.residents||[]).find(r=>r.id===h.residentId)||{}).firstName+' '+((_cache.residents||[]).find(r=>r.id===h.residentId)||{}).lastName : (h.name||'Walk-in')}</span>
+            <span class="info-value" style="font-size:.78rem">${h.complaint||'—'} • ${h.visitDate||fmtDate(h.createdAt)}</span>
+          </div>`).join('') : '<div style="color:var(--text3)">No records yet.</div>'}
+      </div>`;
+    return;
+  }
+
+  if (role === 'captain') {
+    const [res, bl, rq, ann, hhp, nt] = await Promise.all([
+      dbList('residents'), dbList('blotters'), dbList('requests'),
+      dbList('announcements'), dbList('householdProfiles'), dbList('nutritionRecords')
+    ]);
+    const pending    = rq.filter(r=>r.status==='Pending').length;
+    const openBl     = bl.filter(b=>b.status!=='Resolved'&&b.status!=='Dismissed').length;
+    const activeAnn  = ann.filter(a=>a.status==='Active').length;
+    const indigent   = hhp.filter(p=>p.classification==='Indigent'||p.classification==='Poor').length;
+    const is4ps      = hhp.filter(p=>p.is4ps==='Yes').length;
+    const sam        = nt.filter(n=>n.status==='SAM').length;
+    const hh         = [...new Set(res.map(r=>r.householdId).filter(Boolean))].length;
+    eid('main-content').innerHTML = `
+      <div style="margin-bottom:22px">
+        <div class="page-title">Captain's Dashboard</div>
+        <div class="page-sub">${new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card green"><div class="stat-icon">People</div><div class="stat-value">${res.length}</div><div class="stat-label">Total Residents</div></div>
+        <div class="stat-card blue"><div class="stat-icon">HH</div><div class="stat-value">${hh}</div><div class="stat-label">Households</div></div>
+        <div class="stat-card red"><div class="stat-icon">Indigent</div><div class="stat-value">${indigent}</div><div class="stat-label">Indigent / Poor HH</div></div>
+        <div class="stat-card yellow"><div class="stat-icon">4Ps</div><div class="stat-value">${is4ps}</div><div class="stat-label">4Ps Beneficiaries</div></div>
+        <div class="stat-card red"><div class="stat-icon">Blotter</div><div class="stat-value">${openBl}</div><div class="stat-label">Open Blotter Cases</div></div>
+        <div class="stat-card yellow"><div class="stat-icon">Requests</div><div class="stat-value">${pending}</div><div class="stat-label">Pending Requests</div></div>
+        <div class="stat-card green"><div class="stat-icon">Announce</div><div class="stat-value">${activeAnn}</div><div class="stat-label">Active Announcements</div></div>
+        <div class="stat-card red"><div class="stat-icon">SAM</div><div class="stat-value">${sam}</div><div class="stat-label">SAM Nutrition Cases</div></div>
+      </div>
+      <div class="grid-2" style="gap:16px;margin-top:4px">
+        <div class="card">
+          <div style="font-weight:600;margin-bottom:13px">Quick Actions</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn btn-primary" onclick="navigateTo('announcements')">Post Announcement</button>
+            <button class="btn btn-ghost" onclick="navigateTo('summary-report')">View Summary Report</button>
+            <button class="btn btn-ghost" onclick="navigateTo('audit-log')">View Audit Log</button>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-weight:600;margin-bottom:13px">Alerts</div>
+          ${openBl>0?`<div class="alert alert-error" style="margin-bottom:8px">${openBl} unresolved blotter case(s)</div>`:''}
+          ${pending>0?`<div class="alert alert-info" style="margin-bottom:8px">${pending} pending resident request(s)</div>`:''}
+          ${sam>0?`<div class="alert alert-error" style="margin-bottom:8px">${sam} SAM nutrition case(s) need attention</div>`:''}
+          ${!openBl&&!pending&&!sam?'<div style="color:var(--text3)">No urgent alerts.</div>':''}
+        </div>
+      </div>`;
+    return;
+  }
+
+  // Secretary dashboard (default)
   const [res, bl, su, ct, cl, rq, hr, vc, mt, ind, biz] = await Promise.all([
     dbList('residents'), dbList('blotters'), dbList('summons'),
     dbList('certificates'), dbList('clearances'), dbList('requests'),
     dbList('healthRecords'), dbList('vaccines'), dbList('maternal'),
     dbList('indigency'), dbList('business')
   ]);
-
   const pending    = rq.filter(r => r.status === 'Pending').length;
   const pendBl     = bl.filter(b => b.status === 'Pending').length;
   const pendSu     = su.filter(s => s.status === 'Pending').length;
@@ -1040,16 +1174,16 @@ async function dashboard() {
 
   eid('main-content').innerHTML = `
     <div style="margin-bottom:22px">
-      <div class="page-title">Dashboard</div>
+      <div class="page-title">Secretary Dashboard</div>
       <div class="page-sub">${new Date().toLocaleDateString('en-PH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
     </div>
     <div class="stats-grid">
       <div class="stat-card green"><div class="stat-icon">People</div><div class="stat-value">${res.length}</div><div class="stat-label">Residents</div></div>
-      <div class="stat-card blue"><div class="stat-icon">Certs</div><div class="stat-value">${ct.length}</div><div class="stat-label">Certificates</div></div>
-      <div class="stat-card yellow"><div class="stat-icon">Clear.</div><div class="stat-value">${cl.length}</div><div class="stat-label">Clearances</div></div>
-      <div class="stat-card red"><div class="stat-icon">Blotter</div><div class="stat-value">${bl.length}</div><div class="stat-label">Blotters</div></div>
-      <div class="stat-card purple"><div class="stat-icon">Summons</div><div class="stat-value">${su.length}</div><div class="stat-label">Summons</div></div>
-      <div class="stat-card yellow"><div class="stat-icon">Requests</div><div class="stat-value">${pending}</div><div class="stat-label">Pending Requests</div></div>
+      <div class="stat-card blue"><div class="stat-icon">HH</div><div class="stat-value">${hh}</div><div class="stat-label">Households</div></div>
+      <div class="stat-card blue"><div class="stat-icon">Certs</div><div class="stat-value">${ct.length+cl.length+ind.length+biz.length}</div><div class="stat-label">Total Documents</div></div>
+      <div class="stat-card red"><div class="stat-icon">Blotter</div><div class="stat-value">${pendBl}</div><div class="stat-label">Pending Blotters</div></div>
+      <div class="stat-card yellow"><div class="stat-icon">Summons</div><div class="stat-value">${pendSu}</div><div class="stat-label">Pending Summons</div></div>
+      <div class="stat-card ${pending>0?'red':'green'}"><div class="stat-icon">Inbox</div><div class="stat-value">${pending}</div><div class="stat-label">Pending Requests</div></div>
     </div>
     <div class="grid-2" style="gap:16px">
       <div class="card">
@@ -1057,8 +1191,6 @@ async function dashboard() {
         <div class="info-row"><span class="info-label">Male</span><span class="info-value">${males}</span></div>
         <div class="info-row"><span class="info-label">Female</span><span class="info-value">${females}</span></div>
         <div class="info-row"><span class="info-label">Households</span><span class="info-value">${hh}</span></div>
-        <div class="info-row"><span class="info-label">Pending Blotters</span><span class="info-value"><span class="badge badge-red">${pendBl}</span></span></div>
-        <div class="info-row"><span class="info-label">Pending Summons</span><span class="info-value"><span class="badge badge-yellow">${pendSu}</span></span></div>
         <div class="info-row"><span class="info-label">Vaccinations</span><span class="info-value">${vc.length}</span></div>
         <div class="info-row"><span class="info-label">Maternal Visits</span><span class="info-value">${mt.length}</span></div>
         <div class="info-row"><span class="info-label">Consultations</span><span class="info-value">${hr.length}</span></div>
@@ -1068,11 +1200,12 @@ async function dashboard() {
         ${recentDocs.length ? recentDocs.map(d=>`
           <div class="info-row">
             <span class="info-label" style="font-size:.81rem">${d.residentName||'—'}</span>
-            <span class="badge ${d._t==='Certificate'?'badge-blue':'badge-green'}" style="font-size:.65rem">${d._t}</span>
-          </div>`).join('') : '<div class="empty-state" style="padding:16px">No documents yet.</div>'}
+            <span class="info-value"><span class="badge badge-blue" style="font-size:.68rem">${d._t}</span></span>
+          </div>`).join('') : '<div style="color:var(--text3)">No documents yet.</div>'}
       </div>
     </div>`;
 }
+
 
 // ════════════════════════════════════════════════
 // RESIDENTS
@@ -1195,6 +1328,20 @@ function getBday(prefix) {
   return eid(prefix)?.value || '';
 }
 
+function validateBirthdate(bd) {
+  if (!bd) return 'Birthdate is required.';
+  const d = new Date(bd);
+  if (isNaN(d.getTime())) return 'Invalid birthdate.';
+  if (d > new Date()) return 'Birthdate cannot be in the future.';
+  if (d.getFullYear() < 1900) return 'Birthdate year seems too old.';
+  return null; // valid
+}
+
+function normalizeHouseholdId(hid) {
+  if (!hid) return '';
+  return hid.trim().toUpperCase().replace(/\s+/g, '-').replace(/[-_]+/g, '-');
+}
+
 function residentForm(d={}) {
   return `
     ${photoInputHtml(d.photo||null, 'r-photo')}
@@ -1245,16 +1392,34 @@ function openEditResident(id) {
 async function saveResident(id=null) {
   const fn=v('r-fname'),ln=v('r-lname'),bd=getBday('r-bday'),gn=v('r-gender'),addr=v('r-address');
   if (!fn||!ln||!bd||!gn||!addr) { setErr('r-err','Please fill all required fields.'); return; }
+
+  // Birthdate validation
+  const bdErr = validateBirthdate(bd);
+  if (bdErr) { setErr('r-err', bdErr); return; }
+
+  // Duplicate check — always fetch fresh from Firebase, never trust cache alone
+  if (!id) {
+    const freshList = await dbList('residents');
+    _cache.residents = freshList; // update cache too
+    const dup = freshList.find(r =>
+      (r.firstName||'').trim().toLowerCase() === fn.trim().toLowerCase() &&
+      (r.lastName||'').trim().toLowerCase()  === ln.trim().toLowerCase() &&
+      (r.birthdate||'') === bd
+    );
+    if (dup) {
+      setErr('r-err', `Duplicate: "${fn} ${ln}" with birthdate ${bd} is already registered (ID: ${dup.id.slice(0,8)}…). Edit the existing record instead.`);
+      return;
+    }
+  }
+
   const photo = getPhoto('r-photo');
-  const existing = id ? ((_cache.residents||[]).find(r=>r.id===id)||{}).photo : null;
-  // photo === undefined: not touched → keep existing
-  // photo === '': deliberately cleared → save as null
-  // photo === 'data:...': new upload → save new
-  const finalPhoto = photo === undefined ? (existing||null) : (photo === '' ? null : photo);
+  const existingRes = id ? ((_cache.residents||[]).find(r=>r.id===id)||{}) : {};
+  const finalPhoto = photo === undefined ? (existingRes.photo||null) : (photo === '' ? null : photo);
+  const hhId = normalizeHouseholdId(v('r-household'));
+
   const data = { firstName:fn, lastName:ln, middleName:v('r-mname'), birthdate:bd, gender:gn,
-    civilStatus:v('r-civil'), religion:v('r-religion'), householdId:v('r-household'), address:addr, contact:v('r-contact'),
-    email:v('r-email'),
-    photo: finalPhoto
+    civilStatus:v('r-civil'), religion:v('r-religion'), householdId:hhId, address:addr, contact:v('r-contact'),
+    email:v('r-email'), photo: finalPhoto
   };
   try {
     if (id) { await dbUpdate(`residents/${id}`, data); await auditWrite('Edit Resident', `${fn} ${ln}`); }
@@ -1655,23 +1820,29 @@ async function printDoc(node, id) {
 
   const certHtml = `
     <div style="font-family:'Times New Roman',serif;max-width:700px;margin:0 auto;color:#000;">
-      <div style="text-align:center;margin-bottom:4px;">
-        <div style="font-size:11pt;">Republic of the Philippines</div>
-        <div style="font-size:10pt;">OFFICE OF THE BARANGAY</div>
+      <div style="text-align:center;margin-bottom:8px;">
+        ${BRGY.logoUrl ? `<img src="${BRGY.logoUrl}" style="width:70px;height:70px;object-fit:contain;margin-bottom:6px;display:block;margin-left:auto;margin-right:auto">` : ''}
+        <div style="font-size:10pt;">Republic of the Philippines</div>
+        <div style="font-size:10pt;">Province of <strong>${BRGY.province}</strong></div>
+        <div style="font-size:10pt;">Municipality of <strong>${BRGY.municipality}</strong></div>
+        <div style="font-size:13pt;font-weight:bold;margin-top:4px;">${BRGY.name.toUpperCase()}</div>
+        <div style="font-size:9pt;">OFFICE OF THE PUNONG BARANGAY</div>
+        ${BRGY.contactNo||BRGY.email ? `<div style="font-size:8.5pt;color:#555;">${[BRGY.contactNo,BRGY.email].filter(Boolean).join(' | ')}</div>` : ''}
       </div>
       <hr style="border:1.5px solid #000;margin:10px 0;">
       <h2 style="text-align:center;font-size:16pt;letter-spacing:2px;margin:10px 0 2px;">${(item.type||'').toUpperCase()}</h2>
       <div style="text-align:center;font-size:10pt;font-style:italic;margin-bottom:18px;">To Whom It May Concern:</div>
       <div style="font-size:12pt;line-height:2;text-align:justify;margin-bottom:24px;">${bodyText}</div>
       <div style="font-size:11pt;margin-bottom:32px;">
-        Issued this <strong>${today}</strong> at the Office of the Barangay, Philippines.
+        Issued this <strong>${today}</strong> at the ${BRGY.name}, ${BRGY.municipality}, ${BRGY.province}.
       </div>
       <div style="display:flex;justify-content:space-between;margin-top:48px;">
         <div style="text-align:center;width:200px;">
           <div style="border-top:1px solid #000;padding-top:6px;font-size:10pt;">Signature of Requesting Party</div>
         </div>
         <div style="text-align:center;width:220px;">
-          <div style="border-top:1px solid #000;padding-top:6px;font-size:10pt;font-weight:bold;">Barangay Captain</div>
+          <div style="font-size:11pt;font-weight:bold;margin-bottom:2px;">${BRGY.captain}</div>
+          <div style="border-top:1px solid #000;padding-top:6px;font-size:10pt;font-weight:bold;">Punong Barangay</div>
         </div>
       </div>
       <div style="margin-top:24px;font-size:9pt;color:#555;border-top:1px dashed #ccc;padding-top:8px;display:flex;justify-content:space-between;">
@@ -2112,11 +2283,14 @@ async function acceptRegistration(id) {
     const lastName  = r.lastName  || (r.name||'').split(' ').slice(1).join(' ') || '';
     const duplicate = allRes.find(x =>
       x.birthdate === r.birthday &&
-      x.firstName.toLowerCase() === firstName.toLowerCase() &&
-      x.lastName.toLowerCase()  === lastName.toLowerCase()
+      (x.firstName||'').trim().toLowerCase() === firstName.trim().toLowerCase() &&
+      (x.lastName||'').trim().toLowerCase()  === lastName.trim().toLowerCase()
     );
-    if (duplicate && !confirm(`A resident named ${r.name} with the same birthdate already exists. Register anyway?`)) return;
-    if (!duplicate && !confirm(`Add ${r.name} to the Residents Registry?`)) return;
+    if (duplicate) {
+      showToast(`Blocked: "${r.name}" with birthdate ${r.birthday} is already registered. Cannot register twice.`, 'error');
+      return;
+    }
+    if (!confirm(`Add ${r.name} to the Residents Registry?`)) return;
     await dbPush('residents', {
       firstName, lastName,
       middleName:  r.middleName||'',
@@ -2194,8 +2368,34 @@ function processRequest(id, cur) {
 
 async function applyRequest(id) {
   const newStat = v('req-stat');
-  await dbUpdate(`requests/${id}`, { status:newStat, remarks:v('req-rem'), processedBy:currentUser.name, processedAt:Date.now() });
+  const remarks = v('req-rem');
+  await dbUpdate(`requests/${id}`, { status:newStat, remarks, processedBy:currentUser.name, processedAt:Date.now() });
   await auditWrite('Process Request', `Request ${id} → ${newStat}`);
+
+  // Send confirmation email if status is Done or Ready for Pickup and requester has email
+  if ((newStat === 'Done' || newStat === 'Ready for Pickup') && EMAILJS_KEY.publicKey) {
+    try {
+      const req = await dbGet(`requests/${id}`);
+      if (req && req.email) {
+        const senderName = { captain:'Barangay Captain', secretary:'Barangay Secretary', health:'Healthcare Department' }[currentUser.role] || 'Barangay Official';
+        await emailjs.send(EMAILJS_KEY.serviceId, EMAILJS_KEY.templateId, {
+          to_email: req.email,
+          to_name:  req.name || 'Resident',
+          subject:  `Your Request is ${newStat} — ${BRGY.name}`,
+          message:  `Your request for "${req.reqType}" has been updated to: ${newStat}.\n\n${remarks ? 'Note: ' + remarks + '\n\n' : ''}${newStat === 'Ready for Pickup' ? 'Please visit the barangay hall to claim your document.\n\n' : ''}Thank you.`,
+          from_name: senderName
+        });
+        showToast('Request updated & confirmation email sent.');
+      } else {
+        showToast('Request updated. (No email on file for this requester)');
+      }
+    } catch(e) {
+      showToast('Request updated. (Email notification failed)', 'error');
+      console.warn('Confirmation email failed:', e);
+    }
+  } else {
+    showToast('Request updated.');
+  }
   closeModal(); requests();
 }
 
@@ -3329,10 +3529,39 @@ async function submitPublicRequest() {
   if (!fn||!ln||!bday||!gender||!addr||!reqtype) {
     errEl.textContent='Please fill all required fields.'; errEl.style.display='flex'; return;
   }
+  const bdErr = validateBirthdate(bday);
+  if (bdErr) { errEl.textContent=bdErr; errEl.style.display='flex'; return; }
 
   // Extra validation for registration
   if (reqtype === 'Register as Resident') {
-    // no purpose needed, just submit
+    // Check if already registered in residents list
+    try {
+      const allRes = await dbList('residents');
+      const dup = allRes.find(r =>
+        (r.firstName||'').trim().toLowerCase() === fn.trim().toLowerCase() &&
+        (r.lastName||'').trim().toLowerCase()  === ln.trim().toLowerCase() &&
+        (r.birthdate||'') === bday
+      );
+      if (dup) {
+        errEl.textContent = `You are already registered as a resident. If you need to update your records, please visit the barangay hall.`;
+        errEl.style.display = 'flex';
+        return;
+      }
+      // Also check for pending registration requests with same name + bday
+      const allReqs = await dbList('requests');
+      const pendingDup = allReqs.find(r =>
+        r.subType === 'registration' &&
+        r.status === 'Pending' &&
+        (r.firstName||'').trim().toLowerCase() === fn.trim().toLowerCase() &&
+        (r.lastName||'').trim().toLowerCase()  === ln.trim().toLowerCase() &&
+        (r.birthday||'') === bday
+      );
+      if (pendingDup) {
+        errEl.textContent = `A registration request for this name and birthdate is already pending. Please wait for the barangay secretary to process it.`;
+        errEl.style.display = 'flex';
+        return;
+      }
+    } catch(e) { /* proceed even if check fails */ }
   } else if (reqtype === 'Request to Leave Barangay' || reqtype === 'Request Data Removal') {
     if (!v('pub-leave-reason')) { errEl.textContent='Please select a reason.'; errEl.style.display='flex'; return; }
   } else {
@@ -3836,9 +4065,10 @@ function loadPublicAnnouncements() {
     try {
       const wrap = eid('public-announcements-wrap');
       const list = eid('public-announcements-list');
-      if (!wrap || !list) return;
+      if (!wrap || !list) { console.warn('Announcement elements not found'); return; }
 
       const val = snapshot.val();
+      console.log('Announcements data:', val);
       if (!val) { wrap.style.display = 'none'; return; }
 
       const active = Object.entries(val)
@@ -4013,7 +4243,19 @@ window.addEventListener('DOMContentLoaded', () => {
   eid('public-page').style.display = 'block';
   eid('login-modal').style.display = 'none';
   eid('app').style.display = 'none';
-  loadPublicAnnouncements();
+  // Apply barangay branding
+  const sub = eid('brgy-sub');
+  const pname = eid('brgy-portal-name');
+  const psub = eid('brgy-portal-sub');
+  if (sub) sub.textContent = BRGY.name;
+  if (pname) pname.textContent = BRGY.name;
+  if (psub) psub.textContent = BRGY.municipality + ', ' + BRGY.province;
+  // Logo: replace SVG with image if logoUrl is set
+  if (BRGY.logoUrl) {
+    document.querySelectorAll('.logo-icon').forEach(el => {
+      el.innerHTML = `<img src="${BRGY.logoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`;
+    });
+  }
 });
 </script>
 </body>
